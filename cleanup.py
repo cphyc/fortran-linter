@@ -29,7 +29,7 @@ class FortranRules(object):
         (r'({ponctuations})(\w)', r'\1 \2',
          'Missing space after ponctuation'),
 
-        # Should use lowercase for type definition
+        # should use lowercase for type definition
         (r'\b({types_upper})\b', None,
          'Types should be lowercased'),
 
