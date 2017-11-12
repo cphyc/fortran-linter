@@ -46,7 +46,7 @@ class FortranRules(object):
          'Should prepend with "!$"'),
 
         # Keep lines shorter than 80 chars
-        (r'^.{{120}}.+$', None, 'Line length > 120 characters'),
+        (r'^.{linelen_re}.+$', None, 'Line length > {linelen} characters'),
 
         # Convert tabulation to spaces
         (r'\t', '  ', 'Should use 2 spaces instead of tabulation'),
@@ -68,10 +68,8 @@ class FortranRules(object):
          'Missing space after end'),
 
         # Spaces around '='
-        (r'(\w|\))=(\w|\()', r'\1 = \2', 'Missing spaces around "="'),
-
-        # No need to start a line with a "&"
-        # (r'^(\s*)&', r'\1 ', 'Useless continuation character'),
+        (r'(?<!(\(kind|.\(len))=(\w|\()', r' = \2',
+         'Missing spaces around "="'),
 
         # Trailing whitespace
         (r'( \t)+$', r'', 'Trailing whitespaces'),
@@ -80,9 +78,7 @@ class FortranRules(object):
         (r'\(kind\s*=\s*\d\s*\)', None, 'You should use "sp" or "dp" instead'),
 
         # FIXES - these are not rules, they just undo some special cases
-        # that break above
-        # fixes "kind = 8" (should be kind=8)
-        (r'\(kind\s*=\s*(\w+)\s*\)', r'(kind=\1)', None),
+        # that break above. Leave the message empty for a new rule.
     ]
 
     types = [r'real', r'character', r'logical', r'integer']
@@ -92,7 +88,8 @@ class FortranRules(object):
     structs = [r'if', r'select', r'case', r'while']
     ponctuation = [',', '\)', ';']
 
-    def __init__(self):
+    def __init__(self, linelen=120):
+        self.linelen = linelen
         operators_re = r'|'.join(self.operators)
         types_re = r'|'.join(self.types)
         struct_re = r'|'.join(self.structs)
@@ -103,9 +100,13 @@ class FortranRules(object):
             types_upper=types_re.upper(),
             types=types_re,
             structs=struct_re,
-            ponctuations=ponctuation_re)
+            ponctuations=ponctuation_re,
+            linelen_re="{%s}" % self.linelen,
+            linelen="%s" % self.linelen)
+
         newRules = []
         for rxp, replacement, msg in self.rules:
+            msg = msg.format(**fmt) if msg is not None else None
             regexp = re.compile(rxp.format(**fmt))
             newRules.append((regexp, replacement, msg))
         self.rules = newRules
@@ -115,7 +116,7 @@ class FortranRules(object):
 
 
 class LineChecker(object):
-    def __init__(self, fname, print_progress=False):
+    def __init__(self, fname, print_progress=False, linelen=120):
         with open(fname, 'r') as f:
             lines = f.readlines()
         self.filename = fname
@@ -123,7 +124,7 @@ class LineChecker(object):
         self.corrected_lines = []
         self.print_progress = print_progress
 
-        self.rules = FortranRules()
+        self.rules = FortranRules(linelen=linelen)
 
         self.errcount = 0
         self.modifcount = 0
@@ -185,6 +186,9 @@ def main():
     group.add_argument('--syntax-only', action='store_true',
                        help='Print syntax errors to stdout')
 
+    parser.add_argument('--linelength', type=int, default=120,
+                        help='Line length')
+
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Be verbose.')
 
@@ -194,7 +198,7 @@ def main():
     for ifile in set(args.input):
         if args.verbose:
             print('Checking %s' % ifile)
-        lc = LineChecker(ifile, print_progress=False)
+        lc = LineChecker(ifile, print_progress=False, linelen=args.linelength)
 
         nerrors += lc.errcount
         if args.syntax_only:
