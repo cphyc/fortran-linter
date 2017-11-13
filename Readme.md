@@ -16,4 +16,4 @@ Currently, the following things are checked:
   * A line should not exceed 120 characters (this is somehow already extreme).
   * One should use `use mpi` instead of `include "mpif.h"`. Note that this is not fixed by default as it may break codes where `include "mpif.h"` follows and `implicit none` statement.
   * Spaces are preferred over tabs, trailing whitespaces are cleaned.
-  * Warnings are raised if you use `real(8) :: foo` statement as it is better to use `integer, parameter :: dp=selected_real_kind(15); real(dp) :: foo` instead or `use iso_fortran_env, only : real32=>sp, real64=>dp; real(sp) :: foo`
+  * Warnings are raised if you use `real(8) :: foo`. One should rather use `integer, parameter :: dp=selected_real_kind(15); real(dp) :: foo` or `use iso_fortran_env; real(real64) :: foo`
