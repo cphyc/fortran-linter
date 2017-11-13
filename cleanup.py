@@ -79,9 +79,6 @@ class FortranRules(object):
 
         # Use [] instead of \( \)
         (r'\(\\([^\)]*)\\\)', r'[\1]', 'You should use "[]" instead'),
-
-        # FIXES - these are not rules, they just undo some special cases
-        # that break above. Leave the message empty for a new rule.
     ]
 
     types = [r'real', r'character', r'logical', r'integer']
@@ -108,14 +105,23 @@ class FortranRules(object):
             linelen="%s" % self.linelen)
 
         newRules = []
-        for rxp, replacement, msg in self.rules:
-            msg = msg.format(**fmt) if msg is not None else None
-            regexp = re.compile(rxp.format(**fmt))
-            newRules.append((regexp, replacement, msg))
+        for rule in self.rules:
+            newRules.append(self.format_rule(rule, fmt))
         self.rules = newRules
 
     def get(self):
         return self.rules
+
+    def format_rule(self, rule, fmt):
+        if isinstance(rule, tuple):
+            rxp, replacement, msg = rule
+            msg = msg.format(**fmt) if msg is not None else None
+            regexp = re.compile(rxp.format(**fmt))
+            return (regexp, replacement, msg)
+        elif isinstance(rule, list):
+            return [self.format_rule(r, fmt) for r in rule]
+        else:
+            raise NotImplementedError
 
 
 class LineChecker(object):
@@ -139,32 +145,46 @@ class LineChecker(object):
     def check_lines(self):
         for i, line in enumerate(self.lines):
             meta = {'line': i + 1,
+                    'original_line': line.replace('\n', ''),
                     'filename': self.filename}
-            self.corrected_lines.append(self.check_not_ok(line, meta))
 
-    def check_not_ok(self, line, meta):
-        '''
-        Check the line against the not ok rule.
-        '''
-        original_line = line
-        meta['original_line'] = line.replace('\n', '')
-        for regexp, correction, msg in self.rules.get():
-            for res in regexp.finditer(original_line):
-                meta['pos'] = res.start() + 1
-                if correction is None:
-                    newLine = line
-                else:
-                    self.modifcount += 1
-                    newLine = regexp.sub(correction, line)
-                meta['correction'] = newLine
-                line = newLine
+            line, _ = self.check_ruleset(line, line, meta, self.rules.get())
+            self.corrected_lines.append(line)
 
-                # Skip rules with no message (they're just internal fix)
-                if msg is None:
-                    continue
+    def check_ruleset(self, line, original_line, meta, ruleset, depth=0):
+        if isinstance(ruleset, tuple):
+            rule = ruleset
+            line, hints = self.check_rule(
+                line, original_line, meta, rule)
+        else:
+            for rule in ruleset:
+                line, hints = self.check_ruleset(
+                    line, original_line, meta, rule, depth+1)
+                # Stop after first match
+                if hints > 0 and depth >= 1:
+                    break
+
+        return line, hints
+
+    def check_rule(self, line, original_line, meta, rule):
+        regexp, correction, msg = rule
+        errs = 0
+        hints = 0
+        newLine = line
+        for res in regexp.finditer(original_line):
+            meta['pos'] = res.start() + 1
+            hints += 1
+            if correction is not None:
+                self.modifcount += 1
+                newLine = regexp.sub(correction, newLine)
+
+            meta['correction'] = newLine
+            if msg is not None:
                 self.fmt_err(msg, meta)
+                errs += 1
                 self.errcount += 1
-        return line
+
+        return newLine, hints
 
     def fmt_err(self, msg, meta):
         showpos = ' '*(meta['pos']) + '1'
