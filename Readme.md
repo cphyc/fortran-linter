@@ -2,11 +2,11 @@
 
 This tool checks for fortran syntax against a few rules. To print a list of all the warnings for a file, run:
 
-    python cleanup.py myfile.f90 --syntax-only
+    python fortran-linter.py myfile.f90 --syntax-only
 
 To try to fix the warnings in place, do:
 
-    python cleanup.py myfile.f90 -i
+    python fortran-linter.py myfile.f90 -i
 
 The original file will be backuped into `myfile.f90.orig`. All the safe fixes will be done and stored in the file `myfile.f90`.
 
