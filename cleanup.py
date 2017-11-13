@@ -68,7 +68,7 @@ class FortranRules(object):
          'Missing space after end'),
 
         # Spaces around '='
-        (r'(?<!(\(kind|.\(len))=(\w|\()', r' = \2',
+        (r'(?<!(\(kind|.\(len))=(\w|\(|\.|\+|-|\'|")', r' = \2',
          'Missing spaces around "="'),
 
         # Trailing whitespace
