@@ -77,6 +77,9 @@ class FortranRules(object):
         # Kind should be parametrized
         (r'\(kind\s*=\s*\d\s*\)', None, 'You should use "sp" or "dp" instead'),
 
+        # Use [] instead of \( \)
+        (r'\(\\([^\)]*)\\\)', r'[\1]', 'You should use "[]" instead'),
+
         # FIXES - these are not rules, they just undo some special cases
         # that break above. Leave the message empty for a new rule.
     ]
