@@ -13,17 +13,24 @@ class FortranRules(object):
         (r'do (\w+)=(\S+),(\S+)', r'do \1 = \2, \3',
          'Missing spaces'),
 
-        # spaces around >, >=, ...
-        (r'(\w|\))({operators})', r'\1 \2',
-         'Missing spaces before operator'),
-        (r'({operators})(\w|\()', r'\1 \2',
-         'Missing spaces after operator'),
-
-        # " :: "
-        (r'(\S)::', r'\1 ::',
-         'Missing spaces before separator'),
-        (r'::(\S)', r':: \1',
-         'Missing spaces after separator'),
+        [
+            # spaces around operators
+            (r'(\w|\))({operators})(\w|\()', r'\1 \2 \3',
+             'Missing spaces around operator'),
+            (r'(\w|\))({operators})', r'\1 \2',
+             'Missing space before operator'),
+            (r'({operators})(\w|\()', r'\1 \2',
+             'Missing space after operator')
+        ],
+        [
+            # " :: "
+            (r'(\S)::(\S)', r'\1 :: \2',
+             'Missing spaces around separator'),
+            (r'(\S)::', r'\1 ::',
+             'Missing space before separator'),
+            (r'::(\S)', r':: \1',
+             'Missing space after separator')
+        ],
 
         # One should write "this, here" not "this,here"
         (r'({ponctuations})(\w)', r'\1 \2',
@@ -63,13 +70,18 @@ class FortranRules(object):
         # Remove trailing ";"
         (r';\s*$', r'\n', 'Useless ";" at end of line'),
 
-        # Spaces after end (e.g. end if)
-        (r'(?<!#)end(if|do|subroutine|function)', r'end \1',
-         'Missing space after end'),
-
-        # Spaces around '='
-        (r'(?<!(\(kind|.\(len))=(\w|\(|\.|\+|-|\'|")', r' = \2',
-         'Missing spaces around "="'),
+        [
+            # Support preprocessor instruction
+            (r'\#endif', None, None),
+            (r'end(if|do|subroutine|function)', r'end \1',
+             'Missing space after `end\''),
+        ],
+        [
+            # Spaces around '='
+            ('(\(kind|\(len)=', None, None),  # skip len=, kind=
+            (r'(?<!(\(kind|.\(len))=(\w|\(|\.|\+|-|\'|")', r' = \2',
+             'Missing spaces around "="'),
+        ],
 
         # Trailing whitespace
         (r'( \t)+$', r'', 'Trailing whitespaces'),
