@@ -79,6 +79,9 @@ class FortranRules(object):
         [
             # Spaces around '='
             ('(\(kind|\(len)=', None, None),  # skip len=, kind=
+            ('write\(.*\)', None, None),
+            # skip open statements
+            ('open *\([^\)]+\)', None, None),
             (r'(?<!(\(kind|.\(len))=(\w|\(|\.|\+|-|\'|")', r' = \2',
              'Missing spaces around "="'),
         ],
