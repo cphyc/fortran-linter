@@ -17,3 +17,10 @@ Currently, the following things are checked:
   * One should use `use mpi` instead of `include "mpif.h"`. Note that this is not fixed by default as it may break codes where `include "mpif.h"` follows and `implicit none` statement.
   * Spaces are preferred over tabs, trailing whitespaces are cleaned.
   * Warnings are raised if you use `real(8) :: foo`. One should rather use `integer, parameter :: dp=selected_real_kind(15); real(dp) :: foo` or `use iso_fortran_env; real(real64) :: foo`
+
+## TODO
+
+ * [ ] TESTS
+ * [ ] support for other editor(s), e.g. Atom, Vim, …
+ * [ ] ship on pip
+ * [ ] add more rules (this one will never end)
