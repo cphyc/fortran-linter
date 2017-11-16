@@ -44,10 +44,6 @@ class FortranRules(object):
         (r'({structs})\(', r'\1 (',
          'Missing space before parenthesis'),
 
-        # Use "use mpi" instead of depreciated "include mpif.h"
-        (r'include ["\']mpif.h[\'"]', None,
-         'Should use "use mpi" instead'),
-
         # Should prepend "use omp_lib" by "!$" for portability
         (r'^(\s*)use omp_lib', '\1!$ use omp_lib',
          'Should prepend with "!$"'),
@@ -99,8 +95,14 @@ class FortranRules(object):
         [
             # Remove lines starting with a !$
             (r'!\$', None, None),
-            (r'(call |\w+ ?= ?)?omp_', r'!$ \1', 'You should preprend OpenMP calls with !$')
+            (r'(call |\w+ ?= ?)?omp_', r'!$ \1',
+             'Should prepend OpenMP calls with !$')
         ],
+
+        # MPI
+        (r'include ["\']mpif.h[\'"]', None,
+         'Should use `use mpi_f08` instead (or `use mpi` if not available)'),
+
     ]
 
     types = [r'real', r'character', r'logical', r'integer']
