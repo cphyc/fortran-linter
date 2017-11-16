@@ -94,6 +94,13 @@ class FortranRules(object):
 
         # Use [] instead of \( \)
         (r'\(\\([^\)]*)\\\)', r'[\1]', 'You should use "[]" instead'),
+
+        # OpenMP
+        [
+            # Remove lines starting with a !$
+            (r'!\$', None, None),
+            (r'(call |\w+ ?= ?)?omp_', r'!$ \1', 'You should preprend OpenMP calls with !$')
+        ],
     ]
 
     types = [r'real', r'character', r'logical', r'integer']
