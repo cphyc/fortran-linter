@@ -106,9 +106,10 @@ class FortranRules(object):
     ]
 
     types = [r'real', r'character', r'logical', r'integer']
-    operators = [r'\.eq\.', r'\.neq\.', r'\.gt\.', r'\.lt\.', r'\.leq\.',
-                 r'\.geq\.', r'==', r'/=', r'<=', r'<',
-                 r'>=', r'>', r'\.and\.', r'\.or\.']
+    operators = [r'\.eq\.', r'\.neq\.', r'\.gt\.', r'\.lt\.',
+                 r'\.le\.', r'\.leq\.', r'\.ge\.', r'\.geq\.', r'==',
+                 r'/=', r'<=', r'<', r'>=', r'>', r'\.and\.',
+                 r'\.or\.']
     structs = [r'if', r'select', r'case', r'while']
     ponctuation = [',', '\)', ';']
 
