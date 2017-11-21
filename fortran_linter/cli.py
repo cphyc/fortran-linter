@@ -1,11 +1,10 @@
-#!python
-from fortran_linter import LineChecker
+from .main import LineChecker
 import os
 import sys
 import argparse
 
 
-def main():
+def parse_arguments():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('input', help='Input file(s)', nargs='+')
     group = parser.add_mutually_exclusive_group()
@@ -13,9 +12,8 @@ def main():
                        help='Correct the errors inplace.')
     group.add_argument('--stdout', action='store_true',
                        help='Output to stdout')
-    group.add_argument('--syntax-only', action='store_true',
+    group.add_argument('--syntax-only', '--fsyntax-only', action='store_true',
                        help='Print syntax errors to stdout')
-
     parser.add_argument('--linelength', type=int, default=120,
                         help='Line length')
 
@@ -24,6 +22,11 @@ def main():
 
     args = parser.parse_args()
 
+    return args
+
+
+def main():
+    args = parse_arguments()
     nerrors = 0
     for ifile in set(args.input):
         if args.verbose:

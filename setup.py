@@ -2,16 +2,20 @@ import os
 from distutils.core import setup
 
 package_name = "fortran_linter"
-version = '0.1'
+version = '1.0.0'
 README = os.path.join(os.path.dirname(__file__), 'Readme.md')
 long_description = open(README).read()
 setup(name=package_name,
       version=version,
-      description=("Linter for Fortran files"),
+      description=("A linter for Fortran files"),
       long_description=long_description,
+      url='https://github.com/cphyc/fortran-syntax',
       classifiers=[
-          "Programming Language :: Python",
-          ("Topic :: Software Development :: Fortran :: Linter"),
+          'Development Status :: 3 - Alpha',
+          'Intended Audience :: Developers'
+          'Programming Language :: Fortran',
+          'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
+          'Topic :: Software Development :: Build Tools',
       ],
       keywords='fortran',
       author='Corentin Cadiou',
@@ -20,5 +24,8 @@ setup(name=package_name,
       package_dir={package_name: package_name},
       packages=[package_name],
       install_requires=[],
-      scripts=['bin/fortran-linter']
+      entry_points={
+          'console_scripts': [
+              'fortran-linter = fortran_linter.cli:main',
+          ]}
 )
