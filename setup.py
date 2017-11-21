@@ -12,7 +12,7 @@ setup(name=package_name,
       url='https://github.com/cphyc/fortran-syntax',
       classifiers=[
           'Development Status :: 3 - Alpha',
-          'Intended Audience :: Developers'
+          'Intended Audience :: Developers',
           'Programming Language :: Fortran',
           'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
           'Topic :: Software Development :: Build Tools',
@@ -23,7 +23,9 @@ setup(name=package_name,
       license='GPL',
       package_dir={package_name: package_name},
       packages=[package_name],
-      install_requires=[],
+      package_data={
+          '': ['Readme.md', 'LICENSE']
+      },
       entry_points={
           'console_scripts': [
               'fortran-linter = fortran_linter.cli:main',
