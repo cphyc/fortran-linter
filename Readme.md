@@ -43,5 +43,5 @@ Currently, the following things are checked:
 
  * [ ] TESTS
  * [ ] support for other editor(s), e.g. Atom, Vim, …
- * [ ] ship on pip
  * [ ] add more rules (this one will never end)
+ * [x] ship on pip
