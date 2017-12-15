@@ -31,8 +31,14 @@ class FortranRules(object):
         ],
 
         # One should write "this, here" not "this,here"
-        (r'({ponctuations})(\w)', r'\1 \2',
-         'Missing space after ponctuation'),
+        [
+            # Deactivate this in strings (this actually misses out any
+            # line containing a string :()
+            (r'\'[^\']*\'', None, None),
+            # Matching rule
+            (r'({ponctuations})(\w)', r'\1 \2',
+             'Missing space after ponctuation')
+        ],
 
         # should use lowercase for type definition
         (r'\b({types_upper})\b', None,
@@ -72,11 +78,20 @@ class FortranRules(object):
         ],
         [
             # Spaces around '='
-            ('(\(kind|\(len)=', None, None),  # skip len=, kind=
-            ('write\(.*\)', None, None),
-            # skip open statements
-            ('open *\([^\)]+\)', None, None),
-            (r'(?<!(\(kind|.\(len))=(\w|\(|\.|\+|-|\'|")', r' = \2',
+            # Skip len=, kind=
+            ('\((kind|len)=', None, None),
+            # Skip write statements
+            ('write\s*\(.*\)', None, None),
+            # Skip open statements
+            ('open\s*\([^\)]+\)', None, None),
+            # Skip lines defining variables
+            ('::', None, None),
+            # Match anything else
+            (r' =(\w|\(|\.|\+|-|\'|")', r' = \1',
+             'Missing space after "="'),
+            (r'(\w|\)|\.)= ', r' = \1',
+             'Missing space before "="'),
+            (r'(\w|\)|\.)=(\w|\(|\.|\+|-|\'|")', r'\1 = \2',
              'Missing spaces around "="'),
         ],
 
