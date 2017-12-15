@@ -39,7 +39,7 @@
 
 (require 'flycheck)
 
-(flycheck-def-option-var flycheck-fortran-linter-linelength nil fortran-linter
+(flycheck-def-option-var flycheck-fortran-linter-linelength "80" fortran-linter
   "The allowed line length for Fortran linter.
 
 linelength=digits
@@ -52,6 +52,19 @@ linelength=digits
   :safe #'stringp
   :package-version '(flycheck . "0.18"))
 
+(flycheck-def-option-var flycheck-fortran-linter-max-errors "500" fortran-linter
+  "Maximum number of errors to report.
+
+  This is the maximum number of errors the linter will report. The default value is
+  500 characters.
+
+  Examples:
+    --max-errs=500"
+  :type '(string :tag "Max errors")
+  :safe #'stringp
+  :package-version '(flycheck . "0.18"))
+
+
 (flycheck-define-checker fortran-linter
   "A Fortran linter.
 
@@ -59,6 +72,7 @@ See URL `https://github.com/cphyc/fortran-syntax'."
   :command ("/home/ccc/.bin/fortran-linter.py"
             "--syntax-only"
             (option "--linelength=" flycheck-fortran-linter-linelength concat)
+	    (option "--max-errors=" flycheck-fortran-linter-max-errors concat)
             source)
   :error-patterns
   ((warning line-start (file-name) ":" line (or ":" ".") column (or ": " ":\n")

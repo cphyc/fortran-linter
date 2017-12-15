@@ -13,10 +13,12 @@ def parse_arguments():
     group.add_argument('--stdout', action='store_true',
                        help='Output to stdout')
     group.add_argument('--syntax-only', '--fsyntax-only', action='store_true',
-                       help='Print syntax errors to stdout')
+                       help='Print syntax errors to stdout. Default %(default)s.')
     parser.add_argument('--linelength', type=int, default=120,
-                        help='Line length')
-
+                        help='Line length. Default %(default)s.')
+    parser.add_argument('--max-errors', default=-1, type=int,
+                        help=('Maximum number of errors to report. Set '
+                              'to -1 to deactivate. Default %(default)s'))
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Be verbose.')
 
@@ -35,7 +37,11 @@ def main():
 
         nerrors += lc.errcount
         if args.syntax_only:
-            print('\n'.join(lc.errors))
+            if args.max_errors > 0:
+                errs = lc.errors[:args.max_errors]
+            else:
+                errs = lc.errors
+            print('\n'.join(errs))
             continue
 
         if (args.stdout or args.inplace) and args.verbose:
