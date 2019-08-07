@@ -2,7 +2,7 @@ import os
 from distutils.core import setup
 
 package_name = "fortran_linter"
-version = '1.0.1'
+version = '1.0.2'
 README = os.path.join(os.path.dirname(__file__), 'Readme.md')
 long_description = open(README).read()
 setup(name=package_name,
