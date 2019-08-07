@@ -2,13 +2,14 @@ import os
 from distutils.core import setup
 
 package_name = "fortran_linter"
-version = '1.0.3'
+version = '1.0.3b'
 README = os.path.join(os.path.dirname(__file__), 'Readme.md')
 long_description = open(README).read()
 setup(name=package_name,
       version=version,
       description=("A linter for Fortran files"),
       long_description=long_description,
+      long_description_content_type='text/markdown',
       url='https://github.com/cphyc/fortran-syntax',
       classifiers=[
           'Development Status :: 3 - Alpha',
