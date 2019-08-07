@@ -24,7 +24,7 @@ setup(name=package_name,
       package_dir={package_name: package_name},
       packages=[package_name],
       package_data={
-          '': ['Readme.md', 'LICENSE']
+          package_name: ['Readme.md', 'LICENSE']
       },
       entry_points={
           'console_scripts': [
