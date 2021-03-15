@@ -108,7 +108,7 @@ class FortranRules(object):
         [
             # Remove lines starting with a !$
             (r'!\$', None, None),
-            (r'(call |\w+ ?= ?)?omp_', r'!$ \1',
+            (r'(call |\w+ ?= ?|(?!\w))omp_', r'!$ \1',
              'Should prepend OpenMP calls with !$')
         ],
 
