@@ -12,17 +12,31 @@ HERE = Path(__name__).parent.absolute()
 class TestAutoFixing:
     WDIR = None
     OWDIR = None
-    TEST_FILE = None
+    test_file = None
+    reference_file = None
 
     def setup(self):
         self.WDIR = tempfile.mkdtemp()
-        orig_test_file = HERE / "tests" / "test.f90"
-        shutil.copy2(orig_test_file, self.WDIR)
-        self.TEST_FILE = Path(self.WDIR) / "test.f90"
+        source_file = HERE / "tests" / "test.f90"
+        reference_file = HERE / "tests" / "test_reference.f90"
+        shutil.copy2(source_file, self.WDIR)
+        shutil.copy2(reference_file, self.WDIR)
+
+        self.test_file = Path(self.WDIR) / "test.f90"
+        self.reference_file = Path(self.WDIR) / "test_reference.f90"
 
     def test_fail_with_error(self):
         with pytest.raises(SystemExit):
-            main([str(self.TEST_FILE), "--stdout"])
+            main([str(self.test_file), "--stdout"])
+
+    def test_autofix(self):
+        with pytest.raises(SystemExit):
+            main([str(self.test_file), "-i"])
+        expected = self.reference_file.read_text()
+        obtained = self.test_file.read_text()
+
+        for lexp, lobt in zip(expected.split(), obtained.split()):
+            assert lexp == lobt
 
     def tearDown(self):
         pass
