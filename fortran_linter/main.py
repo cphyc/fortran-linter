@@ -4,6 +4,11 @@ import re
 logging.basicConfig(filename="myapp.log", level=logging.DEBUG)
 
 
+def to_lowercase(line: str, match: re.Match):
+    sub = line[match.start() : match.end()].lower()
+    return line[: match.start()] + sub + line[match.end() :]
+
+
 class FortranRules:
     rules = [
         # Spaces in "do i = start, end"
@@ -33,7 +38,7 @@ class FortranRules:
             (r"({ponctuations})(\w)", r"\1 \2", "Missing space after ponctuation"),
         ],
         # should use lowercase for type definition
-        (r"\b({types_upper})\b", None, "Types should be lowercased"),
+        (r"\b({types_upper})\s*::", to_lowercase, "Types should be lowercased"),
         # if (foo), ...
         (r"({structs})\(", r"\1 (", "Missing space before parenthesis"),
         # Should prepend "use omp_lib" by "!$" for portability
@@ -137,9 +142,7 @@ class FortranRules:
             linelen=f"{self.linelen}",
         )
 
-        newRules = []
-        for rule in self.rules:
-            newRules.append(self.format_rule(rule, fmt))
+        newRules = [self.format_rule(rule, fmt) for rule in self.rules]
         self.rules = newRules
 
     def get(self):
@@ -209,7 +212,10 @@ class LineChecker:
         for res in regexp.finditer(original_line):
             meta["pos"] = res.start() + 1
             hints += 1
-            if correction is not None:
+            if callable(correction):
+                self.modifcount += 1
+                newLine = correction(newLine, res)
+            elif correction is not None:
                 self.modifcount += 1
                 newLine = regexp.sub(correction, newLine)
 
