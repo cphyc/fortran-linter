@@ -1,0 +1,43 @@
+[tool.black]
+line-length = 88
+# note : 'py39' is not an available option as of black 19.10b0
+target-version = ['py36', 'py37', 'py38']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+skip =  ["venv", "benchmarks"]
+known_third_party = [
+  "IPython",
+  "nose",
+  "numpy",
+  "sympy",
+  "matplotlib",
+  "unyt",
+  "git",
+  "yaml",
+  "dateutil",
+  "requests",
+  "coverage",
+  "pytest",
+  "pyx",
+  "glue",
+]
+known_first_party = ["fortran_linter"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
