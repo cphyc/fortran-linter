@@ -1,5 +1,6 @@
 import os
-from distutils.core import setup
+
+from setuptools import setup
 
 package_name = "fortran_linter"
 version = "1.0.5"
@@ -31,4 +32,6 @@ setup(
             "fortran-linter = fortran_linter.cli:main",
         ]
     },
+    include_package_data=True,
+    setup_requires=(["wheel"]),
 )
