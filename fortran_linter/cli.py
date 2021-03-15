@@ -1,11 +1,12 @@
 import argparse
 import os
 import sys
+from typing import Optional, Sequence
 
 from .main import LineChecker
 
 
-def parse_arguments():
+def parse_arguments(input_args: Optional[Sequence]):
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("input", help="Input file(s)", nargs="+")
     group = parser.add_mutually_exclusive_group()
@@ -33,13 +34,13 @@ def parse_arguments():
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Be verbose.")
 
-    args = parser.parse_args()
+    args = parser.parse_args(input_args)
 
     return args
 
 
-def main():
-    args = parse_arguments()
+def main(input_args=None):
+    args = parse_arguments(input_args)
     nerrors = 0
     for ifile in set(args.input):
         if args.verbose:
