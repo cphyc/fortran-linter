@@ -2,6 +2,7 @@ import logging
 import re
 
 logging.basicConfig(filename="myapp.log", level=logging.DEBUG)
+re_strings = re.compile(r"([\"'])(?:\\\1|.)*?\1")
 
 
 def to_lowercase(line: str, match):
@@ -210,20 +211,26 @@ class LineChecker:
 
     def check_rule(self, line, original_line, meta, rule):
         regexp, correction, msg = rule
+        original_strings = [m[0] for m in re_strings.finditer(original_line)]
         errs = 0
         hints = 0
         newLine = line
         for res in regexp.finditer(original_line):
-            meta["pos"] = res.start() + 1
-            hints += 1
+            corrected = newLine
             if callable(correction):
                 self.modifcount += 1
-                newLine = correction(newLine, res)
+                corrected = correction(newLine, res)
             elif correction is not None:
-                self.modifcount += 1
-                newLine = regexp.sub(correction, newLine)
+                corrected = regexp.sub(correction, newLine)
 
-            meta["correction"] = newLine
+            new_strings = [m[0] for m in re_strings.finditer(corrected)]
+            if new_strings != original_strings:
+                continue
+
+            meta["pos"] = res.start() + 1
+            hints += 1
+            self.modifcount += 1
+            meta["correction"] = newLine = corrected
             if msg is not None:
                 self.fmt_err(msg, meta)
                 errs += 1
