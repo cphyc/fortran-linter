@@ -4,7 +4,7 @@ import re
 logging.basicConfig(filename="myapp.log", level=logging.DEBUG)
 
 
-def to_lowercase(line: str, match: re.Match):
+def to_lowercase(line: str, match):
     sub = line[match.start() : match.end()].lower()
     return line[: match.start()] + sub + line[match.end() :]
 
