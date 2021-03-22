@@ -16,3 +16,17 @@ end if                ! => end if
 [1, 2, 3]          ! prefer [] syntax
 
 comp_iamin  ! Shouldn't be changed
+
+module my_module
+contains
+     subroutine my_subroutine()
+          implicit none
+          integer :: var
+          var = 1
+     end subroutine my_subroutine
+end module my_module
+
+var = 1
+var = 1
+var = 1
+var = 1
