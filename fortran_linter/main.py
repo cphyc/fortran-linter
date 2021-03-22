@@ -72,7 +72,7 @@ class FortranRules:
             ("::", None, None),
             # Match anything else
             (r' =(\w|\(|\.|\+|-|\'|")', r" = \1", 'Missing space after "="'),
-            (r"(\w|\)|\.)= ", r" = \1", 'Missing space before "="'),
+            (r"(\w|\)|\.)= ", r"\1 = ", 'Missing space before "="'),
             (
                 r'(\w|\)|\.)=(\w|\(|\.|\+|-|\'|")',
                 r"\1 = \2",
