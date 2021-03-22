@@ -121,6 +121,10 @@ class FortranRules:
         r">",
         r"\.and\.",
         r"\.or\.",
+        r"\+",
+        r"\-",
+        r"\*",
+        r"\/",
     ]
     structs = [r"if", r"select", r"case", r"while"]
     punctuation = [",", r"\)", ";"]
