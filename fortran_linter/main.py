@@ -211,10 +211,13 @@ class LineChecker:
 
     def check_rule(self, line, original_line, meta, rule):
         regexp, correction, msg = rule
+        comment_start = original_line.find("!")
         errs = 0
         hints = 0
         newLine = line
         for res in regexp.finditer(original_line):
+            if 0 <= comment_start <= res.start():
+                continue
             meta["pos"] = res.start() + 1
             hints += 1
             if callable(correction):
