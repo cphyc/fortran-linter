@@ -32,7 +32,7 @@ For more help, you can type
 ## Rules
 
 Currently, the following things are checked:
-  * Ponctuation should be followed by a space, this include `,`, `;` and `)`..
+  * punctuation should be followed by a space, this include `,`, `;` and `)`..
   * The following special characters are surrounded by at least one space: `::`, `=`.
   * A line should not exceed 120 characters (this is somehow already extreme).
   * One should use `use mpi` instead of `include "mpif.h"`. Note that this is not fixed by default as it may break codes where `include "mpif.h"` follows and `implicit none` statement.

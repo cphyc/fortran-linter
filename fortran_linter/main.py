@@ -35,7 +35,7 @@ class FortranRules:
             # line containing a string :()
             (r"\'[^\']*\'", None, None),
             # Matching rule
-            (r"({ponctuations})(\w)", r"\1 \2", "Missing space after ponctuation"),
+            (r"({punctuations})(\w)", r"\1 \2", "Missing space after punctuation"),
         ],
         # should use lowercase for type definition
         (r"\b({types_upper})\s*::", to_lowercase, "Types should be lowercased"),
@@ -123,21 +123,21 @@ class FortranRules:
         r"\.or\.",
     ]
     structs = [r"if", r"select", r"case", r"while"]
-    ponctuation = [",", r"\)", ";"]
+    punctuation = [",", r"\)", ";"]
 
     def __init__(self, linelen=120):
         self.linelen = linelen
         operators_re = r"|".join(self.operators)
         types_re = r"|".join(self.types)
         struct_re = r"|".join(self.structs)
-        ponctuation_re = r"|".join(self.ponctuation)
+        punctuation_re = r"|".join(self.punctuation)
 
         fmt = dict(
             operators=operators_re,
             types_upper=types_re.upper(),
             types=types_re,
             structs=struct_re,
-            ponctuations=ponctuation_re,
+            punctuations=punctuation_re,
             linelen_re="{%s}" % self.linelen,
             linelen=f"{self.linelen}",
         )
