@@ -30,3 +30,5 @@ var = 1
 var = 1
 var = 1
 var = 1
+
+do i = 1, 10, n
