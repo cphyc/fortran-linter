@@ -3,7 +3,7 @@ import os
 from setuptools import setup
 
 package_name = "fortran_linter"
-version = "1.0.6"
+version = "1.0.7"
 README = os.path.join(os.path.dirname(__file__), "Readme.md")
 long_description = open(README).read()
 setup(
