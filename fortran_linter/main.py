@@ -14,7 +14,7 @@ class FortranRules:
     rules = [
         # Fix "real*4" to "real(4)"
         # Need to be fixed before spaces around operators
-        (r"({types})\*(\w+)", r"\1(\2)", "Use new syntax TYPE(kind)"),
+        (r"\b({types})\*(\w+)", r"\1(\2)", "Use new syntax TYPE(kind)"),
         # Spaces in "do i = start, end"
         (r"do (\w+)=(\S+),(\S+)", r"do \1 = \2, \3", "Missing spaces"),
         # spaces around operators
