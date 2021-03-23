@@ -216,7 +216,10 @@ class LineChecker:
         hints = 0
         newLine = line
         for res in regexp.finditer(original_line):
-            if 0 <= comment_start <= res.start():
+            if 0 <= comment_start < res.start():
+                # do not modify a comment
+                # except if comment_start == res.start()
+                # (adding space after !)
                 continue
             meta["pos"] = res.start() + 1
             hints += 1
