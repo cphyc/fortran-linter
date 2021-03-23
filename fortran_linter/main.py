@@ -2,7 +2,7 @@ import logging
 import re
 
 logging.basicConfig(filename="myapp.log", level=logging.DEBUG)
-re_strings = re.compile(r"([\"'])(?:\\\1|.)*?\1")
+re_strings = re.compile(r"([\"']).*?\1")
 
 
 def to_lowercase(line: str, match):

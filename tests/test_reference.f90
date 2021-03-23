@@ -40,3 +40,5 @@ x = 1 + 2 * 3 / 5
 ! "var=2"  ! Only first space have to be added
 
 x = "1+2"
+y = 'do i = 1, 10, n'
+y = "Since x=cos(x) and y=sin(x) "" we have x**2+y**2=1"
