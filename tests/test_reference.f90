@@ -35,5 +35,6 @@ do i = 1, 10, n
 
 x = 1 + 2 * 3 / 5
 
+! "var=0"  ! First spaces should be squashed into one
 ! "var=1"  ! Shouldn't be changed
-! "var=2"  !only first space have to be added
+! "var=2"  ! Only first space have to be added
