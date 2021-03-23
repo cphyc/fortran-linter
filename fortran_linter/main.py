@@ -94,12 +94,19 @@ class FortranRules:
             None,
             "Should use `use mpi_f08` instead (or `use mpi` if not available)",
         ),
+        # Replace .eq., .neq., .lt., .gt., etc. by their more explicit equivalent
+        (r"\.eq\.", "==", "Replace .eq. with =="),
+        (r"\.ne\.", "/=", "Replace .ne. with /="),
+        (r"\.gt\.", ">", "Replace .gt. with >"),
+        (r"\.geq\.", ">=", "Replace .geq. with >="),
+        (r"\.lt\.", "<", "Replace .lt. with <"),
+        (r"\.leq\.", "<=", "Replace .lt. with <="),
     ]
 
     types = [r"real", r"character", r"logical", r"integer"]
     operators = [
         r"\.eq\.",
-        r"\.neq\.",
+        r"\.ne\.",
         r"\.gt\.",
         r"\.lt\.",
         r"\.le\.",
@@ -112,6 +119,7 @@ class FortranRules:
         r"<",
         r">=",
         r">",
+        r"\.not\.",
         r"\.and\.",
         r"\.or\.",
         r"(?<!(?:\d|\.)[eEdD])\+",
