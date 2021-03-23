@@ -114,8 +114,8 @@ class FortranRules:
         r">",
         r"\.and\.",
         r"\.or\.",
-        r"(?<!(\d|\.)[eEdD])\+",
-        r"(?<!(\d|\.)[eEdD])\-",
+        r"(?<![eEdD])\+",
+        r"(?<![eEdD])\-",
         r"\*",
         r"\/",
     ]
