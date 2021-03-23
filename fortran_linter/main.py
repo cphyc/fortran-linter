@@ -12,24 +12,17 @@ def to_lowercase(line: str, match):
 
 class FortranRules:
     rules = [
+        # Fix "real*4" to "real(4)"
+        # Need to be fixed before spaces around operators
+        (r"({types})\*(\w+)", r"\1(\2)", "Use new syntax TYPE(kind)"),
         # Spaces in "do i = start, end"
         (r"do (\w+)=(\S+),(\S+)", r"do \1 = \2, \3", "Missing spaces"),
-        [
-            # spaces around operators
-            (
-                r"(\w|\))({operators})(\w|\()",
-                r"\1 \2 \3",
-                "Missing spaces around operator",
-            ),
-            (r"(\w|\))({operators})", r"\1 \2", "Missing space before operator"),
-            (r"({operators})(\w|\()", r"\1 \2", "Missing space after operator"),
-        ],
-        [
-            # " :: "
-            (r"(\S)::(\S)", r"\1 :: \2", "Missing spaces around separator"),
-            (r"(\S)::", r"\1 ::", "Missing space before separator"),
-            (r"::(\S)", r":: \1", "Missing space after separator"),
-        ],
+        # spaces around operators
+        (r"(\w|\))({operators})", r"\1 \2", "Missing space before operator"),
+        (r"({operators})(\w|\()", r"\1 \2", "Missing space after operator"),
+        # " :: "
+        (r"(\S)::", r"\1 ::", "Missing space before separator"),
+        (r"::(\S)", r":: \1", "Missing space after separator"),
         # One should write "this, here" not "this,here"
         (r"({punctuations})(\w)", r"\1 \2", "Missing space after punctuation"),
         # should use lowercase for type definition
@@ -42,12 +35,10 @@ class FortranRules:
         (r"^.{linelen_re}.+$", None, "Line length > {linelen} characters"),
         # Convert tabulation to spaces
         (r"\t", "  ", "Should use 2 spaces instead of tabulation"),
-        # Fix "real*4" to "real(4)"
-        (r"({types})\*(\w+)", r"\1(\2)", "Use new syntax TYPE(kind)"),
         # Fix "foo! comment" to "foo ! comment"
         (r"(\w)\!", r"\1 !", "At least one space before comment"),
         # Fix "!bar" to "! bar"
-        (r"\!(|\s\s+)(\w)", r"! \2", "Exactly one space after comment"),
+        (r"\!(|\s\s+)(\S)", r"! \2", "Exactly one space after comment"),
         # Remove trailing ";"
         (r";\s*$", r"\n", 'Useless ";" at end of line'),
         [
@@ -66,13 +57,20 @@ class FortranRules:
             # Skip lines defining variables
             ("::", None, None),
             # Match anything else
-            (r' =(\w|\(|\.|\+|-|\'|")', r" = \1", 'Missing space after "="'),
-            (r"(\w|\)|\.)= ", r"\1 = ", 'Missing space before "="'),
-            (
-                r'(\w|\)|\.)=(\w|\(|\.|\+|-|\'|")',
-                r"\1 = \2",
-                'Missing spaces around "="',
-            ),
+            (r'=(\w|\(|\.|\+|-|\'|")', r"= \1", 'Missing space after "="'),
+        ],
+        [
+            # Spaces around '='
+            # Skip len=, kind=
+            (r"\((kind|len)=", None, None),
+            # Skip write statements
+            (r"write\s*\(.*\)", None, None),
+            # Skip open statements
+            (r"open\s*\([^\)]+\)", None, None),
+            # Skip lines defining variables
+            ("::", None, None),
+            # Match anything else
+            (r"(\w|\)|\.)=", r"\1 =", 'Missing space before "="'),
         ],
         # Trailing whitespace
         (r"( \t)+$", r"", "Trailing whitespaces"),
@@ -206,17 +204,31 @@ class LineChecker:
     def check_rule(self, line, original_line, meta, rule):
         regexp, correction, msg = rule
         original_strings = [m[0] for m in re_strings.finditer(original_line)]
+        comment_start = line.find("!")
         errs = 0
         hints = 0
         newLine = line
-        for res in regexp.finditer(original_line):
+        for res in reversed(list(regexp.finditer(line))):
             corrected = newLine
+            if 0 <= comment_start < res.start():
+                # do not modify a comment
+                # except if comment_start == res.start()
+                # (adding space after first !)
+                continue
+            meta["pos"] = res.start() + 1
+            hints += 1
             if callable(correction):
                 self.modifcount += 1
-                corrected = correction(newLine, res)
+                part = corrected[res.start() : res.end()]
+                fix = correction(part, res)
+                corrected = corrected[: res.start()] + fix + corrected[res.end() :]
             elif correction is not None:
-                corrected = regexp.sub(correction, newLine)
+                self.modifcount += 1
+                part = corrected[res.start() : res.end()]
+                fix = regexp.sub(correction, part)
+                corrected = corrected[: res.start()] + fix + corrected[res.end() :]
 
+            # Now check we haven't modified any string
             new_strings = [m[0] for m in re_strings.finditer(corrected)]
             if new_strings != original_strings:
                 continue
