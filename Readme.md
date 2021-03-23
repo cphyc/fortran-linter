@@ -15,6 +15,7 @@ There are 2 ways of installing the linter. The recommended one is through pip
 The other way is to clone this repository and install it from the local copy:
 
 	git clone https://github.com/cphyc/fortran-syntax.git
+	cd fortran-syntax
 	pip install .
 
 Please note that depending on your installation, you may have to add `sudo` to the `pip install` line. This is due to the fact that the package is shipped with a script `fortran-linter`. For some installation, the creation of this file may require root access.
