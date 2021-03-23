@@ -16,22 +16,12 @@ class FortranRules:
         (r"({types})\*(\w+)", r"\1(\2)", "Use new syntax TYPE(kind)"),
         # Spaces in "do i = start, end"
         (r"do (\w+)=(\S+),(\S+)", r"do \1 = \2, \3", "Missing spaces"),
-        [
-            # spaces around operators
-            (
-                r"(\w|\))({operators})(\w|\()",
-                r"\1 \2 \3",
-                "Missing spaces around operator",
-            ),
-            (r"(\w|\))({operators})", r"\1 \2", "Missing space before operator"),
-            (r"({operators})(\w|\()", r"\1 \2", "Missing space after operator"),
-        ],
-        [
-            # " :: "
-            (r"(\S)::(\S)", r"\1 :: \2", "Missing spaces around separator"),
-            (r"(\S)::", r"\1 ::", "Missing space before separator"),
-            (r"::(\S)", r":: \1", "Missing space after separator"),
-        ],
+        # spaces around operators
+        (r"(\w|\))({operators})", r"\1 \2", "Missing space before operator"),
+        (r"({operators})(\w|\()", r"\1 \2", "Missing space after operator"),
+        # " :: "
+        (r"(\S)::", r"\1 ::", "Missing space before separator"),
+        (r"::(\S)", r":: \1", "Missing space after separator"),
         # One should write "this, here" not "this,here"
         [
             # Deactivate this in strings (this actually misses out any
@@ -53,7 +43,7 @@ class FortranRules:
         # Fix "foo! comment" to "foo ! comment"
         (r"(\w)\!", r"\1 !", "At least one space before comment"),
         # Fix "!bar" to "! bar"
-        (r"\!(|\s\s+)(\w)", r"! \2", "Exactly one space after comment"),
+        (r"\!(|\s\s+)(\S)", r"! \2", "Exactly one space after comment"),
         # Remove trailing ";"
         (r";\s*$", r"\n", 'Useless ";" at end of line'),
         [
@@ -72,13 +62,20 @@ class FortranRules:
             # Skip lines defining variables
             ("::", None, None),
             # Match anything else
-            (r' =(\w|\(|\.|\+|-|\'|")', r" = \1", 'Missing space after "="'),
-            (r"(\w|\)|\.)= ", r"\1 = ", 'Missing space before "="'),
-            (
-                r'(\w|\)|\.)=(\w|\(|\.|\+|-|\'|")',
-                r"\1 = \2",
-                'Missing spaces around "="',
-            ),
+            (r'=(\w|\(|\.|\+|-|\'|")', r"= \1", 'Missing space after "="'),
+        ],
+        [
+            # Spaces around '='
+            # Skip len=, kind=
+            (r"\((kind|len)=", None, None),
+            # Skip write statements
+            (r"write\s*\(.*\)", None, None),
+            # Skip open statements
+            (r"open\s*\([^\)]+\)", None, None),
+            # Skip lines defining variables
+            ("::", None, None),
+            # Match anything else
+            (r"(\w|\)|\.)=", r"\1 =", 'Missing space before "="'),
         ],
         # Trailing whitespace
         (r"( \t)+$", r"", "Trailing whitespaces"),
@@ -211,18 +208,28 @@ class LineChecker:
 
     def check_rule(self, line, original_line, meta, rule):
         regexp, correction, msg = rule
+        comment_start = line.find("!")
         errs = 0
         hints = 0
         newLine = line
-        for res in regexp.finditer(original_line):
+        for res in reversed(list(regexp.finditer(line))):
+            if 0 <= comment_start < res.start():
+                # do not modify a comment
+                # except if comment_start == res.start()
+                # (adding space after first !)
+                continue
             meta["pos"] = res.start() + 1
             hints += 1
             if callable(correction):
                 self.modifcount += 1
-                newLine = correction(newLine, res)
+                part = newLine[res.start():res.end()]
+                fix = correction(part, res)
+                newLine = newLine[:res.start()] + fix + newLine[res.end():]
             elif correction is not None:
                 self.modifcount += 1
-                newLine = regexp.sub(correction, newLine)
+                part = newLine[res.start():res.end()]
+                fix = regexp.sub(correction, part)
+                newLine = newLine[:res.start()] + fix + newLine[res.end():]
 
             meta["correction"] = newLine
             if msg is not None:
