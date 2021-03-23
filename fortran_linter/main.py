@@ -31,13 +31,7 @@ class FortranRules:
             (r"::(\S)", r":: \1", "Missing space after separator"),
         ],
         # One should write "this, here" not "this,here"
-        [
-            # Deactivate this in strings (this actually misses out any
-            # line containing a string :()
-            (r"\'[^\']*\'", None, None),
-            # Matching rule
-            (r"({punctuations})(\w)", r"\1 \2", "Missing space after punctuation"),
-        ],
+        (r"({punctuations})(\w)", r"\1 \2", "Missing space after punctuation"),
         # should use lowercase for type definition
         (r"\b({types_upper})\s*::", to_lowercase, "Types should be lowercased"),
         # if (foo), ...
