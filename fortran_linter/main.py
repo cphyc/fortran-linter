@@ -113,6 +113,7 @@ class FortranRules:
         r"\.leq\.",
         r"\.ge\.",
         r"\.geq\.",
+        r"\.eqv\.",
         r"==",
         r"/=",
         r"<=",
