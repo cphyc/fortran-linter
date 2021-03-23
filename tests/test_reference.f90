@@ -34,3 +34,6 @@ var = 1
 do i = 1, 10, n
 
 x = 1 + 2 * 3 / 5
+
+! "var=1"  ! Shouldn't be changed
+! "var=2"  !only first space have to be added
