@@ -42,3 +42,8 @@ x = 1 + 2 * 3 / 5
 x = "1+2"
 y = 'do i = 1, 10, n'
 y = "Since x=cos(x) and y=sin(x) "" we have x**2+y**2=1"
+
+x = 1d-4 + 1d-4
+x = 1e-4 + 1e-4
+x = 1D-4 + 1D-4
+x = 1E-4 + 1E-4
