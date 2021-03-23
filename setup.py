@@ -3,7 +3,7 @@ import os
 from setuptools import setup
 
 package_name = "fortran_linter"
-version = "1.0.8"
+version = "1.0.9"
 README = os.path.join(os.path.dirname(__file__), "Readme.md")
 long_description = open(README).read()
 setup(
@@ -12,7 +12,7 @@ setup(
     description=("A linter for Fortran files"),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/cphyc/fortran-syntax",
+    url="https://github.com/cphyc/fortran-linter",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
