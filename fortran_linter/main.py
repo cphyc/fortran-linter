@@ -30,7 +30,7 @@ class FortranRules:
         # if (foo), ...
         (r"({structs})\(", r"\1 (", "Missing space before parenthesis"),
         # Should prepend "use omp_lib" by "!$" for portability
-        (r"^(\s*)use omp_lib", "\1!$ use omp_lib", 'Should prepend with "!$"'),
+        (r"^(\s*)use omp_lib", r"\1!$ use omp_lib", 'Should prepend with "!$"'),
         # Keep lines shorter than 80 chars
         (r"^.{linelen_re}.+$", None, "Line length > {linelen} characters"),
         # Convert tabulation to spaces
