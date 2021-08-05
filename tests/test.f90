@@ -26,7 +26,7 @@ contains
      end subroutine my_subroutine
 end module my_module
 
-!$ use omp_lib
+use omp_lib
 
 var= 1
 var =1

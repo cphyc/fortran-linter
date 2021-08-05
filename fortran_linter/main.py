@@ -36,9 +36,9 @@ class FortranRules:
         # Convert tabulation to spaces
         (r"\t", "  ", "Should use 2 spaces instead of tabulation"),
         # Fix "foo! comment" to "foo ! comment"
-        (r"(\w)\!", r"\1 !", "At least one space before comment"),
+        (r"(\w)(\!(?!\$)|\!\$)", r"\1 \2", "At least one space before comment"),
         # Fix "!bar" to "! bar"
-        (r"\!(|\s\s+)((?!\$)\S)", r"! \2", "Exactly one space after comment"),
+        (r"(\!(?!\$)|\!\$)(|\s\s+)(\S)", r"\1 \3", "Exactly one space after comment"),
         # Remove trailing ";"
         (r";\s*$", r"\n", 'Useless ";" at end of line'),
         [
