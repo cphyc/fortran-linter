@@ -15,7 +15,7 @@ def _expand_files(file_or_dir):
     if os.path.isdir(file_or_dir):
         path = pathlib.Path(file_or_dir)
         for glob in GLOBS:
-            files.extend([str(p) for p in path.glob(glob)])
+            files.extend(str(p) for p in path.glob(glob))
     else:
         files.append(file_or_dir)  # always return a collection
     return files
