@@ -38,5 +38,15 @@ class TestAutoFixing:
         for lexp, lobt in zip(expected.split(), obtained.split()):
             assert lexp == lobt
 
+    def test_autofix_folder(self):
+        with pytest.raises(SystemExit):
+            main([self.WDIR, "-i"])
+
+        expected = self.reference_file.read_text()
+        obtained = self.test_file.read_text()
+
+        for lexp, lobt in zip(expected.split(), obtained.split()):
+            assert lexp == lobt
+
     def tearDown(self):
         pass
