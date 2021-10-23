@@ -29,7 +29,7 @@ def parse_arguments(input_args: Optional[Sequence]):
         type=_expand_files,
         help=(
             "Input file(s) or directories.\n"
-            "If the input is a directory all files with extension f90 and f95 are checked.",
+            "If the input is a directory all files with extension f90 and f95 are checked."
         ),
     )
     group = parser.add_mutually_exclusive_group()
