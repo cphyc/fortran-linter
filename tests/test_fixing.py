@@ -49,7 +49,7 @@ class TestAutoFixing:
         for lexp, lobt in zip(expected.split(), obtained.split()):
             assert lexp == lobt
 
-    def test_autofix_folder_folder_do_not_exists(self):
+    def test_autofix_folder_or_dile_do_not_exists(self):
         not_a_folder = self.WDIR
         # this wile continue to append "subdir" to the working directory
         # until the directory do not exists
@@ -58,6 +58,12 @@ class TestAutoFixing:
 
         with pytest.raises(FileNotFoundError):
             main([not_a_folder, "--stdout"])
+
+        # if the folder not exists also this file
+        not_a_file = os.path.join(not_a_folder, "whatever.f90")
+
+        with pytest.raises(FileNotFoundError):
+            main([not_a_file, "--stdout"])
 
     def tearDown(self):
         pass
