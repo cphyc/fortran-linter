@@ -3,7 +3,7 @@ import itertools as it
 import os
 import pathlib
 import sys
-from typing import Optional, Sequence
+from typing import List, Optional, Sequence
 
 from .main import LineChecker
 
