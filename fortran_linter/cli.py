@@ -1,14 +1,37 @@
 import argparse
+import itertools as it
 import os
+import pathlib
 import sys
-from typing import Optional, Sequence
+from typing import List, Optional, Sequence
 
 from .main import LineChecker
+
+GLOBS = ["*.f90", "*.f95"]
+
+
+def _expand_files(file_or_dir: str) -> List[str]:
+    files = []
+    if os.path.isdir(file_or_dir):
+        path = pathlib.Path(file_or_dir)
+        for glob in GLOBS:
+            files.extend(str(p) for p in path.glob(glob))
+    else:
+        files.append(file_or_dir)  # always return a collection
+    return files
 
 
 def parse_arguments(input_args: Optional[Sequence]):
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("input", help="Input file(s)", nargs="+")
+    parser.add_argument(
+        "input",
+        nargs="+",
+        type=_expand_files,
+        help=(
+            "Input file(s) or directories.\n"
+            "If the input is a directory all files with extension f90 and f95 are checked."
+        ),
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "-i", "--inplace", action="store_true", help="Correct the errors inplace."
@@ -42,7 +65,9 @@ def parse_arguments(input_args: Optional[Sequence]):
 def main(input_args=None):
     args = parse_arguments(input_args)
     nerrors = 0
-    for ifile in set(args.input):
+
+    files = it.chain(*args.input)  # here we flatten all the lists
+    for ifile in set(files):
         if args.verbose:
             print(f"Checking {ifile}")
         lc = LineChecker(ifile, print_progress=False, linelen=args.linelength)
