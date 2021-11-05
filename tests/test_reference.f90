@@ -51,3 +51,6 @@ x = 1D-4 + 1D-4
 x = 1E-4 + 1E-4
 
 if (numerator > 0) displacement(i) = displacement(i) - numerator / (det + smallreal * numerator)
+
+! This is fine
+!$omp parallel
