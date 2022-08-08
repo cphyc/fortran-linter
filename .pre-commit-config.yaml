@@ -27,7 +27,7 @@ repos:
     - id: isort
       additional_dependencies: [toml]
 -   repo: https://github.com/PyCQA/flake8
-    rev: '5.0.2'
+    rev: '5.0.4'
     hooks:
     - id: flake8
       additional_dependencies: [mccabe, flake8-bugbear]
