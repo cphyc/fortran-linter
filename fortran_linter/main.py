@@ -11,8 +11,14 @@ def to_lowercase(line: str, match: re.Match) -> str:
     return line[: match.start()] + sub + line[match.end() :]
 
 
-RAW_BASERULE_T = Tuple[
-    str, Optional[Union[str, Callable[[str, re.Match], str]]], Optional[str]
+RAW_BASERULE_T = Union[
+    Tuple[str, Optional[Union[str, Callable[[str, re.Match], str]]], Optional[str]],
+    Tuple[
+        str,
+        Optional[Union[str, Callable[[str, re.Match], str]]],
+        Optional[str],
+        Union[int, re.RegexFlag],
+    ],
 ]
 RAW_RULE_T = Union[RAW_BASERULE_T, List[RAW_BASERULE_T]]
 BASERULE_T = Tuple[
@@ -37,7 +43,7 @@ class FortranRules:
         # One should write "this, here" not "this,here"
         (r"({punctuations})(\w)", r"\1 \2", "Missing space after punctuation"),
         # should use lowercase for type definition
-        (r"\b({types_upper})\s*::", to_lowercase, "Types should be lowercased"),
+        (r"\b({types_upper})\s*::", to_lowercase, "Types should be lowercased", 0),
         # if (foo), ...
         (r"({structs})\(", r"\1 (", "Missing space before parenthesis"),
         # Should prepend "use omp_lib" by "!$" for portability
@@ -170,9 +176,14 @@ class FortranRules:
 
     def format_rule(self, rule: RAW_RULE_T, fmt: Dict) -> RULE_T:
         if isinstance(rule, tuple):
-            rxp, replacement, msg = rule
+            rxp, replacement, msg = rule[:3]
+            if len(rule) == 4:
+                flags = rule[3]
+            else:
+                flags = re.I
+
             msg = msg.format(**fmt) if msg is not None else None
-            regexp = re.compile(rxp.format(**fmt), re.I)
+            regexp = re.compile(rxp.format(**fmt), flags)
             return (regexp, replacement, msg)
         elif isinstance(rule, list):
             return [self.format_rule(r, fmt) for r in rule]  # type: ignore
@@ -312,7 +323,7 @@ class Indenter:
             dedent = True
         elif self.checker(line, INDENTER_RULES, comment_pos, string_spans):
             indent = True
-        elif self.checker(line, CONTINUATION_LINE_RULES, comment_pos, string_spans):
+        if self.checker(line, CONTINUATION_LINE_RULES, comment_pos, string_spans):
             curline_continuation = True
 
         # If we were in a continuation line previously but are not anymore
