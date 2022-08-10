@@ -69,3 +69,25 @@ if (numerator>0) &
 end do
 ! This is fine
 !$omp parallel
+
+FUNCTION fSig_metals(lambda, f, species, ion_state)
+real(kind=8) :: fSig_metals, lambda, f
+integer :: species, ion_state
+if (species == 1) then ! Oxygen
+fSig_metals = f * getCrosssection_oxygen(lambda, ion_state)
+else if (species == 2) then ! Nitrogen
+fSig_metals = f * getCrosssection_nitrogen(lambda, ion_state)
+else if (species == 3) then ! Carbon
+fSig_metals = f * getCrosssection_carbon(lambda, ion_state)
+else if (species == 4) then ! Magnesium
+fSig_metals = f * getCrosssection_magnesium(lambda, ion_state)
+else if (species == 5) then ! Silicon
+fSig_metals = f * getCrosssection_silicon(lambda, ion_state)
+else if (species == 6) then ! Sulfur
+fSig_metals = f * getCrosssection_sulfur(lambda, ion_state)
+else if (species == 7) then ! Iron
+fSig_metals = f * getCrosssection_iron(lambda, ion_state)
+else if (species == 8) then ! Neon
+fSig_metals = f * getCrosssection_neon(lambda, ion_state)
+end if
+END FUNCTION fSig_metals
