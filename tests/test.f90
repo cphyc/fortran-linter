@@ -158,12 +158,16 @@ MODULE PROCEDURE DVDSM
 
 END INTERFACE
 
-DO 90 J = IBEG, ILEND
-     IF (ICN(J) == 0) GOTO 90
-     ICN(JNPOS) = ICN(J)
-     A(JNPOS) = A(J)
-     JNPOS = JNPOS + 1
-90          END DO
+if (.true.) then
+     DO 80 I = IBEG, ILEND
+          DO 90 J = IBEG, ILEND
+               IF (ICN(J) == 0) GOTO 90
+               ICN(JNPOS) = ICN(J)
+               A(JNPOS) = A(J)
+               JNPOS = JNPOS + 1
+90     END DO
+80     END DO
+end if
 
 FUNCTION SET_NORMAL_OPTS(DENSE_J, BANDED_J, SPARSE_J,                &
      USER_SUPPLIED_JACOBIAN, LOWER_BANDWIDTH, UPPER_BANDWIDTH,          &

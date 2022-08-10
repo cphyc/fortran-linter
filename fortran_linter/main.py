@@ -90,7 +90,7 @@ class FortranRules:
             (r"(\w|\)|\.)=", r"\1 =", 'Missing space before "="'),
         ],
         # Trailing whitespace
-        (r"( \t)+$", r"", "Trailing whitespaces"),
+        (r"[ \t]+$", r"", "Trailing whitespaces"),
         # Kind should be parametrized
         (r"\(kind\s*=\s*\d\s*\)", None, 'You should use "sp" or "dp" instead'),
         # Use [] instead of \( \)
@@ -384,7 +384,7 @@ class Indenter:
         # and ends with a continuation line
         if indent_matches and curline_continuation:
             match = indent_matches[0]
-            if match.group(1) in ("function", "module", "subroutine"):
+            if match.group(1).lower() in ("function", "module", "subroutine"):
                 next_line_indent += self.Nindent
 
         # Treat the case where the line starts with a label
@@ -392,7 +392,6 @@ class Indenter:
             match = label_matches[0]
             label_str = match.group(0)
             prefix = label_str + " "
-            cur_line_shift += len(prefix)
             line = line[match.end() :]
         else:
             prefix = ""
@@ -402,6 +401,7 @@ class Indenter:
             new_line = WHITESPACE_RULE.sub(prefix, line)
         else:
             new_line = line
+
         self.current_line_indent = next_line_indent
 
         return new_line
