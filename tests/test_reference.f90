@@ -1,3 +1,19 @@
+module merger_parameters ! {{{
+    use amr_commons
+    ! Inter galactic gas density contrast factor
+    real(dp) :: IG_density_factor = 1.0D-5
+
+    read(1, NML = merger_params, END = 106)
+end module merger_parameters ! }}}
+
+module merger_commons
+
+    use merger_parameters
+    real(dp), dimension(:,:), allocatable :: Vcirc_dat1, Vcirc_dat2
+
+end module merger_commons
+
+
 print *, &
     & foo, &
     & bar

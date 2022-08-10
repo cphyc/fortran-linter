@@ -193,15 +193,40 @@ class FortranRules:
 
 INDENTER_RULES = (
     re.compile(
-        r"\b(if.*then|do|select|case|while|subroutine|function|module|interface)\b",
+        r"\b(if.*then|do|select|while|subroutine|function|module|interface)\b",
         re.I,
     ),
 )
 CONTINUATION_LINE_RULES = (re.compile(r"&\s*(|!.*)$"),)
 DEDENTER_RULES = (
+    # Match end statements followed by:
+    #  a character (e.g. end myloop)
+    #  nothing
+    #  do, select, ...
+    #  a comment
+    # and that's all!
     re.compile(
-        r"\b(end|endif|enddo|endselect|endcase|endwhile|endsubroutine|endfunction|endmodule|endinterface)\b",
-        re.I,
+        r"""
+            \b
+            # end
+            end
+            # white space
+            \s*
+            # may be followed by the construct name, e.g. 'end function'
+            (
+                (if|do|select|case|while|subroutine|function|module|interface)
+                # and eventually the name of the function, ..., e.g. 'end function foo'
+                \s*(\s+\w+)?\s*
+            )?
+            # we do not want to capture this
+            (?=
+                # may be followed by a comment...
+                (!.*)?
+                # and end of line
+                $
+            )
+        """,
+        re.I | re.VERBOSE,
     ),
 )
 IMMEDIATE_DEDENTER_RULES = (re.compile(r"\b(contains|else|elseif)\b", re.I),)
