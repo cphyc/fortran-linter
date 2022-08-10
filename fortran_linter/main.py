@@ -346,17 +346,24 @@ class Indenter:
         dedent = False
         cur_line_shift = 0
 
-        matches: List[re.Match] = []
+        label_matches: List[re.Match] = []
         has_label = self.checker(
-            line, LABEL_RULES, comment_pos, string_spans, return_matches=matches
+            line, LABEL_RULES, comment_pos, string_spans, return_matches=label_matches
         )
+        indent_matches: List[re.Match] = []
 
         if self.checker(line, IMMEDIATE_DEDENTER_RULES, comment_pos, string_spans):
             cur_line_shift = self.Nindent
         elif self.checker(line, DEDENTER_RULES, comment_pos, string_spans):
             cur_line_shift = self.Nindent
             dedent = True
-        elif self.checker(line, INDENTER_RULES, comment_pos, string_spans):
+        elif self.checker(
+            line,
+            INDENTER_RULES,
+            comment_pos,
+            string_spans,
+            return_matches=indent_matches,
+        ):
             indent = True
         if self.checker(line, CONTINUATION_LINE_RULES, comment_pos, string_spans):
             curline_continuation = True
@@ -373,8 +380,16 @@ class Indenter:
         if dedent:
             next_line_indent = max(0, next_line_indent - self.Nindent)
 
+        # Treat the case where the line defines a function / module / subroutine
+        # and ends with a continuation line
+        if indent_matches and curline_continuation:
+            match = indent_matches[0]
+            if match.group(1) in ("function", "module", "subroutine"):
+                next_line_indent += self.Nindent
+
+        # Treat the case where the line starts with a label
         if has_label:
-            match = matches[0]
+            match = label_matches[0]
             label_str = match.group(0)
             prefix = label_str + " "
             cur_line_shift += len(prefix)
