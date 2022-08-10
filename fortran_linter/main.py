@@ -193,7 +193,7 @@ class FortranRules:
 
 INDENTER_RULES = (
     re.compile(
-        r"\b(if.*then|do|select|while|subroutine|function|module|interface)\b",
+        r"\b(if.*then|do|select|while|subroutine|function|module(?!\s*procedure)|interface)\b",
         re.I,
     ),
 )
