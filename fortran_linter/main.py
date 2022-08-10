@@ -197,7 +197,7 @@ INDENTER_RULES = (
         re.I,
     ),
 )
-CONTINUATION_LINE_RULES = (re.compile(r"&"),)
+CONTINUATION_LINE_RULES = (re.compile(r"&\s*(|!.*)$"),)
 DEDENTER_RULES = (
     re.compile(
         r"\b(end|endif|enddo|endselect|endcase|endwhile|endsubroutine|endfunction|endmodule|endinterface)\b",
@@ -299,7 +299,7 @@ class Indenter:
         for rule in rules:
             for match in rule.finditer(line):
                 span = match.span()
-                if span[1] < comment_pos and not in_string(line, span, string_spans):
+                if span[1] <= comment_pos and not in_string(line, span, string_spans):
                     return True
         return False
 
