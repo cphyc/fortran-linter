@@ -172,7 +172,7 @@ class FortranRules:
         if isinstance(rule, tuple):
             rxp, replacement, msg = rule
             msg = msg.format(**fmt) if msg is not None else None
-            regexp = re.compile(rxp.format(**fmt))
+            regexp = re.compile(rxp.format(**fmt), re.I)
             return (regexp, replacement, msg)
         elif isinstance(rule, list):
             return [self.format_rule(r, fmt) for r in rule]  # type: ignore
@@ -181,18 +181,19 @@ class FortranRules:
 
 
 INDENTER_RULES = (
-    re.compile(r"\b(if.*then|do|select|case|while|subroutine|function|module)\b"),
+    re.compile(
+        r"\b(if.*then|do|select|case|while|subroutine|function|module|interface)\b",
+        re.I,
+    ),
 )
 CONTINUATION_LINE_RULES = (re.compile(r"&"),)
 DEDENTER_RULES = (
     re.compile(
-        r"\b(end|endif|enddo|endselect|endcase|endwhile|endsubroutine|endfunction|endmodule)\b"
+        r"\b(end|endif|enddo|endselect|endcase|endwhile|endsubroutine|endfunction|endmodule|endinterface)\b",
+        re.I,
     ),
 )
-IMMEDIATE_DEDENTER_RULES = (
-    re.compile(r"\b(contains|else)\b"),
-    DEDENTER_RULES[0],
-)
+IMMEDIATE_DEDENTER_RULES = (re.compile(r"\b(contains|else|elseif)\b", re.I),)
 WHITESPACE_RULE = re.compile(
     r"^[^\S\r\n]*"
 )  # match any whitespace, but not end-of-line
@@ -302,7 +303,12 @@ class Indenter:
 
         indent = False
         dedent = False
-        if self.checker(line, DEDENTER_RULES, comment_pos, string_spans):
+        cur_line_shift = 0
+
+        if self.checker(line, IMMEDIATE_DEDENTER_RULES, comment_pos, string_spans):
+            cur_line_shift = self.Nindent
+        elif self.checker(line, DEDENTER_RULES, comment_pos, string_spans):
+            cur_line_shift = self.Nindent
             dedent = True
         elif self.checker(line, INDENTER_RULES, comment_pos, string_spans):
             indent = True
@@ -316,19 +322,16 @@ class Indenter:
             dedent = True
         self.continuation_line = curline_continuation
 
-        if self.checker(line, IMMEDIATE_DEDENTER_RULES, comment_pos, string_spans):
-            cur_line_shift = self.Nindent
-
-        else:
-            cur_line_shift = 0
-
         if indent:
             next_line_indent += self.Nindent
         if dedent:
             next_line_indent = max(0, next_line_indent - self.Nindent)
 
         prefix = " " * max(0, self.current_line_indent - cur_line_shift)
-        new_line = WHITESPACE_RULE.sub(prefix, line)
+        if not line.strip() == "":  # do not indent empty lines
+            new_line = WHITESPACE_RULE.sub(prefix, line)
+        else:
+            new_line = line
         self.current_line_indent = next_line_indent
 
         return new_line
