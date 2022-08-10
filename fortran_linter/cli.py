@@ -101,7 +101,7 @@ def main(input_args=None):
             # Copy original file
             os.rename(ifile, ifile + ".orig")
             with open(ifile, "w") as f:
-                f.writelines(lc.corrected_lines)
+                f.writelines(_.rstrip() + "\n" for _ in lc.corrected_lines)
 
     if nerrors > 0:
         sys.exit(1)
