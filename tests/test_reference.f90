@@ -1,6 +1,19 @@
+print *, &
+    & foo, &
+    & bar
+
+do idim = 1, ndim
+    do ipart = 1, npart
+        if (xp(ipart, idim) / scale + skip_loc(idim) < 0.0d0) &
+            & xp(ipart, idim) = xp(ipart, idim) + (xbound(idim) - skip_loc(idim)) * scale
+        if (xp(ipart, idim) / scale + skip_loc(idim) >= xbound(idim)) &
+            & xp(ipart, idim) = xp(ipart, idim) - (xbound(idim) - skip_loc(idim)) * scale
+    end do
+end do
+
 do i = 1, 10
     print *, &
-        i&
+        i,&
         i * 2
     if (i == 10) then
         print *, 'i is larger than 10!&'
@@ -90,4 +103,5 @@ FUNCTION fSig_metals(lambda, f, species, ion_state)
     else if (species == 8) then ! Neon
         fSig_metals = f * getCrosssection_neon(lambda, ion_state)
     end if
+
 END FUNCTION fSig_metals
