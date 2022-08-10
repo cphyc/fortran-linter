@@ -47,6 +47,12 @@ def parse_arguments(input_args: Optional[Sequence]):
         "--linelength", type=int, default=120, help="Line length. Default %(default)s."
     )
     parser.add_argument(
+        "--indent-size",
+        type=int,
+        default=4,
+        help="Indentation size. Default %(default)s.",
+    )
+    parser.add_argument(
         "--max-errors",
         default=-1,
         type=int,
@@ -70,7 +76,12 @@ def main(input_args=None):
     for ifile in set(files):
         if args.verbose:
             print(f"Checking {ifile}")
-        lc = LineChecker(ifile, print_progress=False, linelen=args.linelength)
+        lc = LineChecker(
+            ifile,
+            print_progress=False,
+            linelen=args.linelength,
+            indent_size=args.indent_size,
+        )
 
         nerrors += lc.errcount
         if args.syntax_only:
