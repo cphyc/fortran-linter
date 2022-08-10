@@ -235,6 +235,7 @@ WHITESPACE_RULE = re.compile(
 )  # match any whitespace, but not end-of-line
 STRING_MARK_DETECTOR = re.compile(r"(?<!(?<!\\)\\)['\"]")
 COMMENT_MARK_DETECTOR = re.compile(r"!")
+LABEL_RULES = (re.compile(r"^\d+\b"),)
 
 
 def string_locations(line: str) -> Iterator[Tuple[int, int]]:
@@ -320,12 +321,16 @@ class Indenter:
         rules: Tuple[re.Pattern, ...],
         comment_pos: int,
         string_spans: List[Tuple[int, int]],
-    ) -> bool:
+        return_matches: Optional[List[re.Match]] = None,
+    ) -> Union[bool, Tuple[bool, Optional[re.Match]]]:
         for rule in rules:
             for match in rule.finditer(line):
                 span = match.span()
                 if span[1] <= comment_pos and not in_string(line, span, string_spans):
+                    if return_matches is not None:
+                        return_matches.append(match)
                     return True
+
         return False
 
     def indent_line(self, line: str) -> str:
@@ -340,6 +345,11 @@ class Indenter:
         indent = False
         dedent = False
         cur_line_shift = 0
+
+        matches: List[re.Match] = []
+        has_label = self.checker(
+            line, LABEL_RULES, comment_pos, string_spans, return_matches=matches
+        )
 
         if self.checker(line, IMMEDIATE_DEDENTER_RULES, comment_pos, string_spans):
             cur_line_shift = self.Nindent
@@ -363,7 +373,16 @@ class Indenter:
         if dedent:
             next_line_indent = max(0, next_line_indent - self.Nindent)
 
-        prefix = " " * max(0, self.current_line_indent - cur_line_shift)
+        if has_label:
+            match = matches[0]
+            label_str = match.group(0)
+            prefix = label_str + " "
+            cur_line_shift += len(prefix)
+            line = line[match.end() :]
+        else:
+            prefix = ""
+        prefix = prefix.ljust(max(0, self.current_line_indent - cur_line_shift))
+
         if not line.strip() == "":  # do not indent empty lines
             new_line = WHITESPACE_RULE.sub(prefix, line)
         else:
