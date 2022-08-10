@@ -51,15 +51,15 @@ class TestAutoFixing:
 
     def test_autofix_folder_or_dile_do_not_exists(self):
         not_a_folder = self.WDIR
-        # this wile continue to append "subdir" to the working directory
-        # until the directory do not exists
+        # this will continue to append "subdir" to the working directory
+        # until the directory does not exist
         while os.path.exists(not_a_folder) and os.path.isdir(not_a_folder):
             not_a_folder = os.path.join(not_a_folder, "subdir")
 
         with pytest.raises(FileNotFoundError):
             main([not_a_folder, "--stdout"])
 
-        # if the folder not exists also this file
+        # if the folder does fnot exist, this file should not either
         not_a_file = os.path.join(not_a_folder, "whatever.f90")
 
         with pytest.raises(FileNotFoundError):

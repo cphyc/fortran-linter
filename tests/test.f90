@@ -1,3 +1,16 @@
+do i = 1, 10
+print*, &
+i&
+ i*2
+if (i == 10) then
+print*, 'i is larger than 10!&'
+else
+print*, 'is not larger than 10'
+print*, 'let us confuse endif!'
+end if
+end do
+
+
 foo>=bar.and.bis>bas ! should have spaces around
 	bla          ! line started with a tab, should become spaces
 
@@ -51,6 +64,8 @@ x=1D-4+1D-4
 x=1E-4+1E-4
 
 if(numerator>0)displacement(i)=displacement(i)-numerator/(det+smallreal*numerator)
-
+if (numerator>0) &
+ print*, numerator
+end do
 ! This is fine
 !$omp parallel
