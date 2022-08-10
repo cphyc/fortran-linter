@@ -121,3 +121,39 @@ FUNCTION fSig_metals(lambda, f, species, ion_state)
     end if
 
 END FUNCTION fSig_metals
+
+
+INTERFACE DVODE_F90
+    ! VODE_F90 is the interface subroutine that is actually invoked
+    ! when the user calls DVODE_F90. It in turn calls subroutine
+    ! DVODE which is the driver that directs all the work.
+    MODULE PROCEDURE VODE_F90
+
+    ! GET_STATS can be called to gather integration statistics.
+    MODULE PROCEDURE GET_STATS
+
+    ! DVINDY can be called to interpolate the solution and derivative.
+    MODULE PROCEDURE DVINDY
+
+    ! RELEASE_ARRAYS can be called to release/deallocate the work arrays.
+    MODULE PROCEDURE RELEASE_ARRAYS
+
+    ! SET_IAJA can be called to set sparse matrix descriptor arrays.
+    MODULE PROCEDURE SET_IAJA
+
+    ! USERSETS_IAJA can be called to set sparse matrix descriptor arrays.
+    MODULE PROCEDURE USERSETS_IAJA
+
+    ! CHECK_STAT can be called to stop if a storage allocation or
+    ! deallocation error occurs.
+    MODULE PROCEDURE CHECK_STAT
+
+    ! JACSP can be called to calculate a Jacobian using Doug Salane's
+    ! algoritm
+    MODULE PROCEDURE JACSP
+
+    ! DVDSM can be called to calculate sparse pointer arrays needed
+    ! by JACSP
+    MODULE PROCEDURE DVDSM
+
+END INTERFACE
