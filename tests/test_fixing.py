@@ -39,6 +39,21 @@ class TestAutoFixing:
         for lexp, lobt in zip(expected.split(), obtained.split()):
             assert lexp == lobt
 
+    def test_stability(self):
+        original = self.test_file.read_text()
+
+        # Autofixing should be nilpotent
+        with pytest.raises(SystemExit):
+            main([str(self.test_file), "-i"])
+        first_pass = self.test_file.read_text()
+
+        with pytest.raises(SystemExit):
+            main([str(self.test_file), "-i"])
+        second_pass = self.test_file.read_text()
+
+        assert first_pass == second_pass
+        assert first_pass != original
+
     def test_autofix_folder(self):
         with pytest.raises(SystemExit):
             main([self.WDIR, "-i"])
@@ -49,7 +64,7 @@ class TestAutoFixing:
         for lexp, lobt in zip(expected.split(), obtained.split()):
             assert lexp == lobt
 
-    def test_autofix_folder_or_dile_do_not_exists(self):
+    def test_autofix_folder_or_file_do_not_exists(self):
         not_a_folder = self.WDIR
         # this will continue to append "subdir" to the working directory
         # until the directory does not exist
