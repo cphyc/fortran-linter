@@ -11,7 +11,7 @@ GLOBS = ["*.f90", "*.f95"]
 
 
 def _expand_files(file_or_dir: str) -> List[str]:
-    files = []
+    files: List[str] = []
     if os.path.isdir(file_or_dir):
         path = pathlib.Path(file_or_dir)
         for glob in GLOBS:

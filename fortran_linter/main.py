@@ -43,7 +43,12 @@ class FortranRules:
         # One should write "this, here" not "this,here"
         (r"({punctuations})(\w)", r"\1 \2", "Missing space after punctuation"),
         # should use lowercase for type definition
-        (r"\b({types_upper})\s*::", to_lowercase, "Types should be lowercased", 0),
+        (
+            r"\b({types_upper})(\s*\([^\)]+\))?\s*::",
+            to_lowercase,
+            "Types should be lowercased",
+            0,
+        ),
         # if (foo), ...
         (r"({structs})\(", r"\1 (", "Missing space before parenthesis"),
         # Should prepend "use omp_lib" by "!$" for portability
@@ -511,9 +516,7 @@ class LineChecker:
             hints += 1
             if callable(correction):
                 self.modifcount += 1
-                part = corrected[res.start() : res.end()]
-                fix = correction(part, res)
-                corrected = corrected[: res.start()] + fix + corrected[res.end() :]
+                corrected = correction(line, res)
             elif correction is not None:
                 self.modifcount += 1
                 part = corrected[res.start() : res.end()]

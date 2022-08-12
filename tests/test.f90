@@ -2,6 +2,7 @@ module merger_parameters!{{{
   use amr_commons
   ! Inter galactic gas density contrast factor
   real(dp)::IG_density_factor = 1.0D-5
+  INTEGER :: test
 
   read(1, NML = merger_params, END = 106)
 end module merger_parameters!}}}
