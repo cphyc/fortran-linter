@@ -3,8 +3,7 @@
 This linter works on a line-by-line basis to enforce some rules regarding the format of Fortran files.
 
 The linter does not ship with any grammar and is solely based on regular expressions. This allows
-to easily add new rules, but this implies some limitations. For example, continued lines (using `&`)
-cannot be parsed or nested parenthesis are a nightmare to fix.
+to easily add new rules, but this implies some limitations.
 
 ## Installation
 
@@ -26,7 +25,7 @@ This tool checks for fortran syntax against a few rules. To print a list of all 
 
     fortran-linter myfile.f90 --syntax-only
 
-To try to fix the warnings in place, do:
+To autofix (most) warnings in place, do:
 
     fortran-linter myfile.f90 -i
 
@@ -38,7 +37,7 @@ For more help, you can type
 
 ## Rules
 
-Currently, the following things are enforced:
+Here is a non-comprehensive set of rules that are enforced:
   * Punctuation should be followed by a space, this include `,`, `;` and `)`.
   * Binary operators (`==`, `+`, ...) should be surrounded by spaces
   * The following special characters are surrounded by at least one space: `::`, `=`.
@@ -46,6 +45,9 @@ Currently, the following things are enforced:
   * One should use `use mpi` instead of `include "mpif.h"`. Note that this is not fixed by default as it may break codes where `include "mpif.h"` follows and `implicit none` statement.
   * Spaces are preferred over tabs, trailing whitespaces are cleaned.
   * Warnings are raised if you use `real(8) :: foo`. One should rather use `integer, parameter :: dp = selected_real_kind(15); real(dp) :: foo` or `use iso_fortran_env; real(real64) :: foo`
+  * `print` statements should look like `print *, "something"`
+  * `write` statements should look like `write(*, *) "something"`
+  * Lines should be indented consistently (by default, using an indentation of 4 spaces)
 
 # TODO list
 
