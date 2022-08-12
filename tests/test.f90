@@ -37,6 +37,8 @@ print*, 'i is larger than 10!&'
 else
 print*, 'is not larger than 10'
 print*, 'let us confuse endif!'
+print*,"very ugly"
+write(*,*)"also ugly"
 end if
 end do
 
@@ -177,3 +179,19 @@ FUNCTION SET_NORMAL_OPTS(DENSE_J, BANDED_J, SPARSE_J,                &
 ! FUNCTION SET_NORMAL_OPTS:
 ! Jacobian
 end function SET_NORMAL_OPTS
+
+! Test reformatting of write and print statements
+print*,     "should remove the spaces"
+print    *   ,   "what is this?"
+print * , some_value
+
+write(*,*) "Hello World"
+write       (unit_out,"('\"some string\"', I03.d, 3x)")                foo
+
+! Test continuation line indentation
+if (foo.and. & ! With a comment
+    foo.and. &
+    bar.and.     & ! With a comment
+    bar.and.     &
+    foobar) print*, "foo&foo&bar&bar"
+print*, "should not be indented"
