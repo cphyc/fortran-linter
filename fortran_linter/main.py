@@ -120,9 +120,30 @@ class FortranRules:
         (r"\.eq\.", "==", "Replace .eq. with =="),
         (r"\.ne\.", "/=", "Replace .ne. with /="),
         (r"\.gt\.", ">", "Replace .gt. with >"),
+        (r"\.ge\.", ">=", "Replace .ge. with >="),
         (r"\.geq\.", ">=", "Replace .geq. with >="),
         (r"\.lt\.", "<", "Replace .lt. with <"),
-        (r"\.leq\.", "<=", "Replace .lt. with <="),
+        (r"\.le\.", "<=", "Replace .le. with <="),
+        (r"\.leq\.", "<=", "Replace .leq. with <="),
+        # Add spaces around print*, write* statements
+        (r"print\s*\*\s*,\s*", "print *, ", "Single space after 'print*,'"),
+        (
+            # matches write(x..........x, y...........y)
+            #                 left_arg      right_arg
+            r"""
+            write\s*\(
+                \s*(?P<left_arg>\w+|\*)\s*,
+                \s*(?P<right_arg>
+                    \*|
+                    '(\\'|[^'])*'|
+                    "(\\"|[^"])*"
+                )\s*\)
+                \s*
+            """,
+            r"write(\g<left_arg>, \g<right_arg>) ",
+            "Missing space after print*",
+            re.VERBOSE,
+        ),
     ]
 
     rules: List[RULE_T]
@@ -202,7 +223,7 @@ INDENTER_RULES = (
         re.I,
     ),
 )
-CONTINUATION_LINE_RULES = (re.compile(r"&\s*(|!.*)$"),)
+CONTINUATION_LINE_RULES = (re.compile(r"&(?=\s*(!.*)?$)"),)
 DEDENTER_RULES = (
     # Match end statements followed by:
     #  a character (e.g. end myloop)
