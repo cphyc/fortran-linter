@@ -1,0 +1,7 @@
+-   id: fortran-linter
+    name: Fortran linter
+    description: Lint and format Fortran code
+    entry: fortran-linter
+    language: python
+    language_version: python3
+    files: '\.(f90|f08)$'
