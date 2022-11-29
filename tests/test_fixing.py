@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+from itertools import zip_longest
 from pathlib import Path
 
 import pytest
@@ -36,7 +37,7 @@ class TestAutoFixing:
         expected = self.reference_file.read_text()
         obtained = self.test_file.read_text()
 
-        for lexp, lobt in zip(expected.split(), obtained.split()):
+        for lexp, lobt in zip_longest(expected.splitlines(), obtained.splitlines()):
             assert lexp == lobt
 
     def test_stability(self):

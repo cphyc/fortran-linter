@@ -195,3 +195,19 @@ if (foo .and. & ! With a comment
     bar .and.     &
     foobar) print *, "foo&foo&bar&bar"
 print *, "should not be indented"
+
+! Check compatibility with run parameters
+if (.not. multiple) then
+    if (           nx /= n1(levelmin) / 2 ** levelmin &
+            & .or. ny /= n2(levelmin) / 2 ** levelmin &
+            & .or. nz /= n3(levelmin) / 2 ** levelmin) then
+        write(*, *) 'coarser grid is not compatible with initial conditions file'
+        write(*, *) 'Found    n1=', n1(levelmin),&
+            &            ' n2=', n2(levelmin),&
+            &            ' n3=', n3(levelmin)
+        write(*, *) 'Expected n1=', nx * 2 ** levelmin &
+            &           ,' n2=', ny * 2 ** levelmin &
+            &           ,' n3=', nz * 2 ** levelmin
+        call clean_stop
+    end if
+end if
