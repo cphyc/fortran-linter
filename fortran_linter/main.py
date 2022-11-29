@@ -204,7 +204,7 @@ class FortranRules:
         if isinstance(rule, tuple):
             rxp, replacement, msg = rule[:3]
             if len(rule) == 4:
-                flags = rule[3]
+                flags = rule[3]  # type: ignore
             else:
                 flags = re.I
 
@@ -317,7 +317,8 @@ def comment_location(line: str) -> int:
 
     Returns
     -------
-    int: location of the comment-opening character, len(line) if the line does not end with a comment.
+    int: location of the comment-opening character or
+         len(line) if the line does not end with a comment.
     """
     if line.strip().startswith("#"):
         return line.index("#")
