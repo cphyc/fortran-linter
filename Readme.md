@@ -38,7 +38,7 @@ For more help, you can type
 ## Rules
 
 Here is a non-comprehensive set of rules that are enforced:
-  * Punctuation should be followed by a space, this include `,`, `;` and `)`.
+  * Punctuation should be followed by a space, this includes `,`, `;` and `)`.
   * Binary operators (`==`, `+`, ...) should be surrounded by spaces
   * The following special characters are surrounded by at least one space: `::`, `=`.
   * A line should not exceed 120 characters (this is somehow already extreme). The maximum line length can be controlled from the CLI.
@@ -48,6 +48,7 @@ Here is a non-comprehensive set of rules that are enforced:
   * `print` statements should look like `print *, "something"`
   * `write` statements should look like `write(*, *) "something"`
   * Lines should be indented consistently (by default, using an indentation of 4 spaces)
+  * [FORD](https://forddocs.readthedocs.io/en/latest/) Compatibility: `!!` and `!>` are preserved and treated as comments like `!` with one space after and at least one space before.
 
 # TODO list
 
