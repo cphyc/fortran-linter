@@ -37,6 +37,12 @@ def test_fortran_comment_detection():
         ("! test", 0),
         ("    !test", 4),
         ("'Contains a string', ! and a comment", 21),
+        ("!! test", 0),
+        ("    !!test", 4),
+        ("'Contains a string', !! and a comment", 21),
+        ("!> test", 0),
+        ("    !>test", 4),
+        ("'Contains a string', !> and a comment", 21),
     )
 
     no_comment_lines = (

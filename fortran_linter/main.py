@@ -60,10 +60,12 @@ class FortranRules:
         # Fix "foo! comment" to "foo ! comment"
         (r"(\w)(\!(?!\$)|\!\$)", r"\1 \2", "At least one space before comment"),
         # Enforce space after comments (but ignoring !$):
-        # # Fix "!bar" to "! bar" (Normal F90)
-        # (r"\!(|\s\s+)(?!\$)(\S)", r"! \2", "Exactly one space after comment"),
         # Fix "<>bar" to "<> bar" where <> can be !, !!, !> (FORD Documentation)
-        (r"(![!>#]?(?:(?=[^\s!>#$]|(\s\s)|\s\$)|\$(?!\S)))\s*(.*)", r"\1 \3", "Exactly one space after comment"),
+        (
+            r"(![!>#]?(?:(?=[^\s!>#$]|(\s\s)|\s\$)|\$(?!\S)))\s*(.*)",
+            r"\1 \3",
+            "Exactly one space after comment",
+        ),
         # Remove trailing ";"
         (r";\s*$", r"\n", 'Useless ";" at end of line'),
         [
