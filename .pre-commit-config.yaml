@@ -26,7 +26,7 @@ repos:
     -   id: setup-cfg-fmt
         args: [--include-version-classifiers, --max-py-version, '3.11']
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.7.0
+    rev: v1.7.1
     hooks:
     - id: mypy
 -   repo: https://github.com/astral-sh/ruff-pre-commit
