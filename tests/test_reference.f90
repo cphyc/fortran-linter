@@ -48,6 +48,10 @@ bla          ! line started with a tab, should become spaces
 
 a = 2 ! bar            - missing spaces around '!'
 a = 2 ! bar         - too many spaces after '!'
+a = 2 !! bar           - missing spaces around FORD '!!'
+a = 2 !> bar           - missing spaces around FORD '!>'
+a = 2 !! bar       - too many spaces after FORD '!!'
+a = 2 !> bar     - too many spaces after FORD '!>'
 
 integer(4) :: foo     ! old syntax, should become integer(4)
 
