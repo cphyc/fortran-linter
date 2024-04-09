@@ -9,7 +9,7 @@ def test_string_detection():
     )
 
     for s, exp_positions in answers:
-        for pos, exp_pos in zip(string_locations(s), exp_positions):
+        for pos, exp_pos in zip(string_locations(s), exp_positions, strict=False):
             assert pos == exp_pos
 
 

@@ -17,7 +17,7 @@ class TestAutoFixing:
     test_file = None
     reference_file = None
 
-    def setup(self):
+    def setup_method(self):
         self.WDIR = tempfile.mkdtemp()
         source_file = HERE / "tests" / "test.f90"
         reference_file = HERE / "tests" / "test_reference.f90"
@@ -62,7 +62,7 @@ class TestAutoFixing:
         expected = self.reference_file.read_text()
         obtained = self.test_file.read_text()
 
-        for lexp, lobt in zip(expected.split(), obtained.split()):
+        for lexp, lobt in zip(expected.split(), obtained.split(), strict=False):
             assert lexp == lobt
 
     def test_autofix_folder_or_file_do_not_exists(self):

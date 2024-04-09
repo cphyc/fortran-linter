@@ -3,15 +3,15 @@ import itertools as it
 import os
 import pathlib
 import sys
-from typing import List, Optional, Sequence
+from collections.abc import Sequence
 
 from .main import LineChecker
 
 GLOBS = ["*.f90", "*.f95"]
 
 
-def _expand_files(file_or_dir: str) -> List[str]:
-    files: List[str] = []
+def _expand_files(file_or_dir: str) -> list[str]:
+    files: list[str] = []
     if os.path.isdir(file_or_dir):
         path = pathlib.Path(file_or_dir)
         for glob in GLOBS:
@@ -21,7 +21,7 @@ def _expand_files(file_or_dir: str) -> List[str]:
     return files
 
 
-def parse_arguments(input_args: Optional[Sequence]):
+def parse_arguments(input_args: Sequence | None):
     parser = argparse.ArgumentParser(description="")
     parser.add_argument(
         "input",

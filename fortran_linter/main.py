@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Callable, Dict, Iterator, List, Optional, Tuple, Union
+from collections.abc import Callable, Iterator
 
 logging.basicConfig(filename="myapp.log", level=logging.DEBUG)
 re_strings = re.compile(r"([\"']).*?\1")
@@ -11,24 +11,22 @@ def to_lowercase(line: str, match: re.Match) -> str:
     return line[: match.start()] + sub + line[match.end() :]
 
 
-RAW_BASERULE_T = Union[
-    Tuple[str, Optional[Union[str, Callable[[str, re.Match], str]]], Optional[str]],
-    Tuple[
+RAW_BASERULE_T = (
+    tuple[str, str | Callable[[str, re.Match], str] | None, str | None]
+    | tuple[
         str,
-        Optional[Union[str, Callable[[str, re.Match], str]]],
-        Optional[str],
-        Union[int, re.RegexFlag],
-    ],
-]
-RAW_RULE_T = Union[RAW_BASERULE_T, List[RAW_BASERULE_T]]
-BASERULE_T = Tuple[
-    re.Pattern, Optional[Union[str, Callable[[str, re.Match], str]]], Optional[str]
-]
-RULE_T = Union[BASERULE_T, List[BASERULE_T]]
+        str | Callable[[str, re.Match], str] | None,
+        str | None,
+        int | re.RegexFlag,
+    ]
+)
+RAW_RULE_T = RAW_BASERULE_T | list[RAW_BASERULE_T]
+BASERULE_T = tuple[re.Pattern, str | Callable[[str, re.Match], str] | None, str | None]
+RULE_T = BASERULE_T | list[BASERULE_T]
 
 
 class FortranRules:
-    _rules: List[RAW_RULE_T] = [
+    _rules: list[RAW_RULE_T] = [
         # Fix "real*4" to "real(4)"
         # Need to be fixed before spaces around operators
         (r"\b({types})\*(\w+)", r"\1(\2)", "Use new syntax TYPE(kind)"),
@@ -151,7 +149,7 @@ class FortranRules:
         ),
     ]
 
-    rules: List[RULE_T]
+    rules: list[RULE_T]
 
     types = [r"real", r"character", r"logical", r"integer"]
     operators = [
@@ -190,22 +188,22 @@ class FortranRules:
         struct_re = r"|".join(self.structs)
         punctuation_re = r"|".join(self.punctuation)
 
-        fmt = dict(
-            operators=operators_re,
-            types_upper=types_re.upper(),
-            types=types_re,
-            structs=struct_re,
-            punctuations=punctuation_re,
-            linelen_re="{%s}" % self.linelen,
-            linelen=f"{self.linelen}",
-        )
+        fmt = {
+            "operators": operators_re,
+            "types_upper": types_re.upper(),
+            "types": types_re,
+            "structs": struct_re,
+            "punctuations": punctuation_re,
+            "linelen_re": "{%s}" % self.linelen,
+            "linelen": f"{self.linelen}",
+        }
 
         self.rules = [self.format_rule(rule, fmt) for rule in self._rules]
 
-    def get(self) -> List[RULE_T]:
+    def get(self) -> list[RULE_T]:
         return self.rules
 
-    def format_rule(self, rule: RAW_RULE_T, fmt: Dict) -> RULE_T:
+    def format_rule(self, rule: RAW_RULE_T, fmt: dict) -> RULE_T:
         if isinstance(rule, tuple):
             rxp, replacement, msg = rule[:3]
             if len(rule) == 4:
@@ -269,7 +267,7 @@ COMMENT_MARK_DETECTOR = re.compile(r"!")
 LABEL_RULES = (re.compile(r"^\d+\b"),)
 
 
-def string_locations(line: str) -> Iterator[Tuple[int, int]]:
+def string_locations(line: str) -> Iterator[tuple[int, int]]:
     """
     Return the locations of all strings in a line.
     """
@@ -290,7 +288,7 @@ def string_locations(line: str) -> Iterator[Tuple[int, int]]:
 
 
 def in_string(
-    line: str, span: Tuple[int, int], string_spans: List[Tuple[int, int]]
+    line: str, span: tuple[int, int], string_spans: list[tuple[int, int]]
 ) -> bool:
     """Check if a span is in a string.
 
@@ -344,17 +342,17 @@ class Indenter:
     current_line_indent: int = 0
     continuation_line: bool = False
 
-    def __init__(self, Nindent: int):
-        self.Nindent = Nindent
+    def __init__(self, nindent: int):
+        self.Nindent = nindent
 
     def checker(
         self,
         line: str,
-        rules: Tuple[re.Pattern, ...],
+        rules: tuple[re.Pattern, ...],
         comment_pos: int,
-        string_spans: List[Tuple[int, int]],
-        return_matches: Optional[List[re.Match]] = None,
-    ) -> Union[bool, Tuple[bool, Optional[re.Match]]]:
+        string_spans: list[tuple[int, int]],
+        return_matches: list[re.Match] | None = None,
+    ) -> bool | tuple[bool, re.Match | None]:
         for rule in rules:
             for match in rule.finditer(line):
                 span = match.span()
@@ -378,11 +376,11 @@ class Indenter:
         dedent = False
         cur_line_shift = 0
 
-        label_matches: List[re.Match] = []
+        label_matches: list[re.Match] = []
         has_label = self.checker(
             line, LABEL_RULES, comment_pos, string_spans, return_matches=label_matches
         )
-        indent_matches: List[re.Match] = []
+        indent_matches: list[re.Match] = []
 
         if self.checker(line, IMMEDIATE_DEDENTER_RULES, comment_pos, string_spans):
             cur_line_shift = self.Nindent
@@ -438,21 +436,21 @@ class Indenter:
 
         return new_line
 
-    def __call__(self, lines: List[str]) -> List[str]:
+    def __call__(self, lines: list[str]) -> list[str]:
         return [self.indent_line(line) for line in lines]
 
 
 class LineChecker:
     filename: str
-    original_lines: List[str]
-    lines: List[str]
-    corrected_lines: List[str]
+    original_lines: list[str]
+    lines: list[str]
+    corrected_lines: list[str]
     print_progress: bool
     rules: FortranRules
     indenter: Indenter
     errcount: int
     modifcount: int
-    errors: List
+    errors: list
 
     def __init__(
         self,
@@ -468,7 +466,7 @@ class LineChecker:
         self.print_progress = print_progress
 
         self.rules = FortranRules(linelen=linelen)
-        self.indenter = Indenter(Nindent=indent_size)
+        self.indenter = Indenter(indent_size)
 
         self.errcount = 0
         self.modifcount = 0
@@ -482,8 +480,10 @@ class LineChecker:
         # Check the lines
         self.check_lines(self.original_lines, self.lines)
 
-    def check_lines(self, original_lines: List[str], lines: List[str]) -> None:
-        for i, (original_line, line) in enumerate(zip(original_lines, lines)):
+    def check_lines(self, original_lines: list[str], lines: list[str]) -> None:
+        for i, (original_line, line) in enumerate(
+            zip(original_lines, lines, strict=False)
+        ):
             meta = {
                 "line": i + 1,
                 "original_line": original_line.replace("\n", ""),
@@ -500,10 +500,10 @@ class LineChecker:
         line: str,
         *,
         original_line: str,
-        meta: Dict,
-        ruleset: Union[RULE_T, List[RULE_T]],
+        meta: dict,
+        ruleset: RULE_T | list[RULE_T],
         depth: int = 0,
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         if isinstance(ruleset, tuple):
             return self.check_rule(
                 line, original_line=original_line, meta=meta, rule=ruleset
@@ -524,16 +524,16 @@ class LineChecker:
         return line, hints
 
     def check_rule(
-        self, line: str, *, original_line: str, meta: Dict, rule: BASERULE_T
-    ) -> Tuple[str, int]:
+        self, line: str, *, original_line: str, meta: dict, rule: BASERULE_T
+    ) -> tuple[str, int]:
         regexp, correction, msg = rule
         original_strings = [m[0] for m in re_strings.finditer(original_line)]
         comment_start = line.find("!")
         errs = 0
         hints = 0
-        newLine = line
+        new_line = line
         for res in reversed(list(regexp.finditer(line))):
-            corrected = newLine
+            corrected = new_line
             if 0 <= comment_start < res.start():
                 # do not modify a comment
                 # except if comment_start == res.start()
@@ -558,20 +558,18 @@ class LineChecker:
             meta["pos"] = res.start() + 1
             hints += 1
             self.modifcount += 1
-            meta["correction"] = newLine = corrected
+            meta["correction"] = new_line = corrected
             if msg is not None:
                 self.fmt_err(msg, meta)
                 errs += 1
                 self.errcount += 1
 
-        return newLine, hints
+        return new_line, hints
 
-    def fmt_err(self, msg: str, meta: Dict) -> None:
+    def fmt_err(self, msg: str, meta: dict) -> None:
         showpos = " " * (meta["pos"]) + "1"
         self.errors.append(
-            (
-                "{meta[filename]}:{meta[line]}:{meta[pos]}:\n\n"
-                " {meta[original_line]}\n {showpos}\n"
-                "Warning: {msg} at (1)."
-            ).format(meta=meta, msg=msg, showpos=showpos)
+            f"{meta['filename']}:{meta['line']}:{meta['pos']}:\n\n"
+            f" {meta['original_line']}\n {showpos}\n"
+            f"Warning: {msg} at (1)."
         )
