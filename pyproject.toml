@@ -23,9 +23,7 @@ classifiers = [
 keywords = [
     "fortran",
 ]
-dependencies = [
-    "requests",
-]
+dependencies = []
 
 [project.optional-dependencies]
 test = ["pytest"]
