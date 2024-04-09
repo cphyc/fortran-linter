@@ -1,21 +1,71 @@
 [build-system]
 requires = [
-  "setuptools>=19.6",
-  "wheel",
+  "hatchling",
 ]
 
-[tool.black]
-line-length = 88
-target-version = ['py37', 'py38', 'py39', 'py310']
+build-backend = "hatchling.build"
 
-[tool.isort]
-profile = "black"
-combine_as_imports = true
-known_first_party = ["fortran_linter"]
-sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+[project]
+requires-python = ">=3.10"
+name = "fortran_linter"
+version = "1.1.1"
+description = "A linter for Fortran files"
+authors = [
+    { name = "Corentin Cadiou", email = "corentin.cadiou@iap.fr" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Programming Language :: Fortran",
+    "Topic :: Software Development :: Build Tools",
+]
+keywords = [
+    "fortran",
+]
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.readme]
+file = "Readme.md"
+content-type = "text/markdown"
+
+[project.license]
+text = "GPL"
+
+[project.urls]
+Homepage = "https://github.com/cphyc/fortran-linter"
+
+[project.scripts]
+fortran-linter = "fortran_linter.cli:main"
+
+[tool.setuptools]
+packages = [
+    "fortran_linter",
+]
+include-package-data = true
+license-files = [
+    "LICENSE",
+]
+
+[tool.setuptools.package-data]
+fortran_linter = [
+    "Readme.md",
+]
 
 [tool.ruff]
+line-length = 88
+
+[tool.isort]
+combine_as_imports = true
+known_first_party = ["fortran_linter"]
+
+[tool.ruff.lint]
 # Enable Pyflakes `E` and `F` codes by default.
-select = ["E", "F"]
-ignore = []
-target-version = 'py310'
+select = ["E", "C", "F", "UP", "B", "A", "YTT", "S", "N"]
+ignore = ["C901"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/test*.py" = ["S101"]
