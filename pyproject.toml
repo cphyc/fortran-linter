@@ -27,6 +27,9 @@ dependencies = [
     "requests",
 ]
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [project.readme]
 file = "Readme.md"
 content-type = "text/markdown"
