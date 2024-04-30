@@ -194,7 +194,7 @@ class FortranRules:
             "types": types_re,
             "structs": struct_re,
             "punctuations": punctuation_re,
-            "linelen_re": "{%s}" % self.linelen,
+            "linelen_re": f"{{{self.linelen}}}",
             "linelen": f"{self.linelen}",
         }
 
