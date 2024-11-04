@@ -468,7 +468,7 @@ class Indenter:
             line = line[: span[0]] + proper_format + line[span[1] :]
 
         elif self.checker(
-            line,
+            line[:comment_pos],
             INDENTER_RULES,
             comment_pos,
             string_spans,
