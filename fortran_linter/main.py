@@ -222,8 +222,16 @@ class FortranRules:
 
 INDENTER_RULES = (
     re.compile(
-        r"\b(if.*then|do|select|while|subroutine|function|module(?!\s*procedure)|interface)\b",
-        re.I,
+        r"""
+        \b
+        (?P<construct_no_name>
+            if|do|select|while|block
+        )|(
+            (?P<construct>type|program|subroutine|function|(sub)?module(?!\s*procedure)|interface)
+            (\s+(?P<name>\w+))?
+        )\b
+        """,
+        re.I | re.VERBOSE,
     ),
 )
 CONTINUATION_LINE_RULES = (re.compile(r"&(?=\s*(!.*)?$)"),)
@@ -237,16 +245,23 @@ DEDENTER_RULES = (
     re.compile(
         r"""
             \b
-            # end
-            end
-            # white space
+            (?P<end_construct_name>
+                # end
+                end
+                # may be followed by the construct name, e.g. 'end function'
+                (
+                    # either just `end`
+                    \b
+                    |
+                        # or end if / end do / end subroutine
+                        \s*
+                        (?P<construct>if|do|select|block|case|while|type|program|subroutine|function|(sub)?module|interface)
+                        # and eventually the name of the function, e.g.
+                        # 'end function foo'
+                        (\s+(?P<name>\w+))?
+                )
+            )
             \s*
-            # may be followed by the construct name, e.g. 'end function'
-            (
-                (if|do|select|case|while|subroutine|function|module|interface)
-                # and eventually the name of the function, ..., e.g. 'end function foo'
-                \s*(\s+\w+)?\s*
-            )?
             # we do not want to capture this
             (?=
                 # may be followed by a comment...
@@ -342,8 +357,12 @@ class Indenter:
     current_line_indent: int = 0
     continuation_line: bool = False
 
+    # The stack of program/module/subroutine/function
+    program_stack: list[tuple[str, str]]
+
     def __init__(self, nindent: int):
         self.Nindent = nindent
+        self.program_stack = []
 
     def checker(
         self,
@@ -381,12 +400,45 @@ class Indenter:
             line, LABEL_RULES, comment_pos, string_spans, return_matches=label_matches
         )
         indent_matches: list[re.Match] = []
+        named_constructs_matches: list[re.Match] = []
 
         if self.checker(line, IMMEDIATE_DEDENTER_RULES, comment_pos, string_spans):
             cur_line_shift = self.Nindent
-        elif self.checker(line, DEDENTER_RULES, comment_pos, string_spans):
+        elif self.checker(
+            line,
+            DEDENTER_RULES,
+            comment_pos,
+            string_spans,
+            return_matches=named_constructs_matches,
+        ):
             cur_line_shift = self.Nindent
             dedent = True
+
+            # Dedent a previously-opened construct
+            construct, name = self.program_stack.pop()
+
+            m = named_constructs_matches[-1]
+
+            # Sanity check
+            if m.group("construct") and m.group("construct") != construct:
+                raise ValueError(
+                    "Named construct does not match the construct pattern, "
+                    f"expected '{construct}' "
+                    f"but got '{named_constructs_matches[-1].group('construct')}'."
+                )
+
+            span = named_constructs_matches[-1].span("end_construct_name")
+
+            # Replace the construct with proper format
+            proper_format_lst = ["end"]
+            if construct:
+                proper_format_lst.append(construct)
+            if name:
+                proper_format_lst.append(name)
+
+            proper_format = " ".join(proper_format_lst)
+            line = line[: span[0]] + proper_format + line[span[1] :]
+
         elif self.checker(
             line,
             INDENTER_RULES,
@@ -395,6 +447,12 @@ class Indenter:
             return_matches=indent_matches,
         ):
             indent = True
+            construct = indent_matches[-1].group("construct") or indent_matches[
+                -1
+            ].group("construct_no_name")
+            name = indent_matches[-1].group("name")
+            self.program_stack.append((construct, name))
+
         if self.checker(line, CONTINUATION_LINE_RULES, comment_pos, string_spans):
             curline_continuation = True
 
