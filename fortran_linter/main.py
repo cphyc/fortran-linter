@@ -1,6 +1,7 @@
 import logging
 import re
 from collections.abc import Callable, Iterator
+from typing import Any
 
 logging.basicConfig(filename="myapp.log", level=logging.DEBUG)
 re_strings = re.compile(r"([\"']).*?\1")
@@ -223,12 +224,23 @@ class FortranRules:
 INDENTER_RULES = (
     re.compile(
         r"""
-        \b
-        (?P<construct_no_name>
-            if|do|select|while|block
-        )|(
-            (?P<construct>type|program|subroutine|function|(sub)?module(?!\s*procedure)|interface)
-            (\s+(?P<name>\w+))?
+        ^\s*\b
+        (
+            (?P<construct_no_name>
+                # Note: we match on "then" rather than "if.*then"
+                # so that we allow if (...) & \n then
+                then|do|select|while|block
+            )|(
+                (
+                    (?P<construct>
+                        type|program|subroutine|(sub)?module(?!\s*procedure)|interface
+                    )|(
+                        (?!\bend\b)(\w+\s+)*
+                        (?P<construct_function>function)
+                    )
+                )
+                (\s+(?P<name>\w+))?
+            )
         )\b
         """,
         re.I | re.VERBOSE,
@@ -358,7 +370,7 @@ class Indenter:
     continuation_line: bool = False
 
     # The stack of program/module/subroutine/function
-    program_stack: list[tuple[str, str]]
+    program_stack: list[tuple[str, str, Any]]
 
     def __init__(self, nindent: int):
         self.Nindent = nindent
@@ -382,7 +394,7 @@ class Indenter:
 
         return False
 
-    def indent_line(self, line: str) -> str:
+    def indent_line(self, line: str, context: Any) -> str:
         if line.startswith("#"):
             return line
 
@@ -415,16 +427,23 @@ class Indenter:
             dedent = True
 
             # Dedent a previously-opened construct
-            construct, name = self.program_stack.pop()
+            construct, name, opening_context = self.program_stack.pop()
 
             m = named_constructs_matches[-1]
+            this_construct = m.group("construct")
+            # We match if (...) then using then
+            # but it corresponds to an end if
+            if this_construct == "then":
+                this_construct = "if"
 
             # Sanity check
-            if m.group("construct") and m.group("construct") != construct:
+            if this_construct and this_construct.lower() != construct:
                 raise ValueError(
                     "Named construct does not match the construct pattern, "
                     f"expected '{construct}' "
-                    f"but got '{named_constructs_matches[-1].group('construct')}'."
+                    f"but got '{this_construct.lower()}'.\n"
+                    f"Current context: {context}\n"
+                    f"Other context:   {opening_context}"
                 )
 
             span = named_constructs_matches[-1].span("end_construct_name")
@@ -447,11 +466,19 @@ class Indenter:
             return_matches=indent_matches,
         ):
             indent = True
-            construct = indent_matches[-1].group("construct") or indent_matches[
-                -1
-            ].group("construct_no_name")
+            m = indent_matches[-1]
+            construct = (
+                m.group("construct")
+                or m.group("construct_no_name")
+                or m.group("construct_function")
+            )
             name = indent_matches[-1].group("name")
-            self.program_stack.append((construct, name))
+            # We match 'if (...) then' using then
+            # but it corresponds to an 'end if'
+            if construct.lower() == "then":
+                construct = "if"
+
+            self.program_stack.append((construct.lower(), name, context))
 
         if self.checker(line, CONTINUATION_LINE_RULES, comment_pos, string_spans):
             curline_continuation = True
@@ -495,7 +522,10 @@ class Indenter:
         return new_line
 
     def __call__(self, lines: list[str]) -> list[str]:
-        return [self.indent_line(line) for line in lines]
+        return [
+            self.indent_line(line, {"line_number": line_number + 1, "line": line})
+            for line_number, line in enumerate(lines)
+        ]
 
 
 class LineChecker:
