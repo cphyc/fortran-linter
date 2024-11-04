@@ -228,7 +228,12 @@ INDENTER_RULES = (
             (?P<construct_no_name>
                 # Note: we match on "then" rather than "if.*then"
                 # so that we allow if (...) & \n then
-                .*(?P<has_then>\bthen)|(^\s*\b(do|select|while|block))
+                .*(?P<has_then>\bthen)|(
+                    ^\s*\b
+                    # Possibly match optional label (foo: do)
+                    (?P<label>\w+\s*:\s*)?
+                    (do|select|while|block)
+                )
             )|(^\s*\b
                 (
                     (?P<construct>
@@ -293,7 +298,7 @@ WHITESPACE_RULE = re.compile(
 )  # match any whitespace, but not end-of-line
 STRING_MARK_DETECTOR = re.compile(r"(?<!(?<!\\)\\)['\"]")
 COMMENT_MARK_DETECTOR = re.compile(r"!")
-LABEL_RULES = (re.compile(r"^\d+\b"),)
+INT_LABEL_RULES = (re.compile(r"^\d+\b"),)
 
 
 def string_locations(line: str) -> Iterator[tuple[int, int]]:
@@ -370,13 +375,15 @@ class Indenter:
     Nindent: int
     current_line_indent: int = 0
     continuation_line: bool = False
+    filename: str
 
     # The stack of program/module/subroutine/function
     program_stack: list[tuple[str, str, Any]]
 
-    def __init__(self, nindent: int):
+    def __init__(self, nindent: int, filename: str):
         self.Nindent = nindent
         self.program_stack = []
+        self.filename = filename
 
     def checker(
         self,
@@ -410,8 +417,12 @@ class Indenter:
         cur_line_shift = 0
 
         label_matches: list[re.Match] = []
-        has_label = self.checker(
-            line, LABEL_RULES, comment_pos, string_spans, return_matches=label_matches
+        has_int_label = self.checker(
+            line,
+            INT_LABEL_RULES,
+            comment_pos,
+            string_spans,
+            return_matches=label_matches,
         )
         indent_matches: list[re.Match] = []
         named_constructs_matches: list[re.Match] = []
@@ -476,6 +487,11 @@ class Indenter:
             if m.group("has_then"):
                 construct = "if"
 
+            # If we have a label, remove it from the construct name
+            if m.group("label"):
+                construct = construct.replace(m.group("label"), "")
+                name = m.group("label").replace(":", "").strip()
+
             if construct is None:
                 raise ValueError(
                     "Construct should not be None. "
@@ -510,7 +526,7 @@ class Indenter:
                 next_line_indent += self.Nindent
 
         # Treat the case where the line starts with a label
-        if has_label:
+        if has_int_label:
             match = label_matches[0]
             label_str = match.group(0)
             prefix = label_str + " "
@@ -530,7 +546,10 @@ class Indenter:
 
     def __call__(self, lines: list[str]) -> list[str]:
         return [
-            self.indent_line(line, {"line_number": line_number + 1, "line": line})
+            self.indent_line(
+                line,
+                {"file": self.filename, "line_number": line_number + 1, "line": line},
+            )
             for line_number, line in enumerate(lines)
         ]
 
@@ -561,7 +580,7 @@ class LineChecker:
         self.print_progress = print_progress
 
         self.rules = FortranRules(linelen=linelen)
-        self.indenter = Indenter(indent_size)
+        self.indenter = Indenter(indent_size, fname)
 
         self.errcount = 0
         self.modifcount = 0
