@@ -224,18 +224,20 @@ class FortranRules:
 INDENTER_RULES = (
     re.compile(
         r"""
-        ^\s*\b
         (
             (?P<construct_no_name>
                 # Note: we match on "then" rather than "if.*then"
                 # so that we allow if (...) & \n then
-                then|do|select|while|block
-            )|(
+                .*(?P<has_then>\bthen)|(^\s*\b(do|select|while|block))
+            )|(^\s*\b
                 (
                     (?P<construct>
-                        type|program|subroutine|(sub)?module(?!\s*procedure)|interface
+                        type(?!\()|program|subroutine|(sub)?module(?!\s*procedure)|interface
                     )|(
-                        (?!\bend\b)(\w+\s+)*
+                        # This one is tricky, we match on 'function' but not 'end'
+                        # to capture 'function foo' but not 'end function'
+                        # but also 'real(dp) elemental pure function'
+                        (?!\bend\b).*
                         (?P<construct_function>function)
                     )
                 )
@@ -430,11 +432,7 @@ class Indenter:
             construct, name, opening_context = self.program_stack.pop()
 
             m = named_constructs_matches[-1]
-            this_construct = m.group("construct")
-            # We match if (...) then using then
-            # but it corresponds to an end if
-            if this_construct == "then":
-                this_construct = "if"
+            this_construct = m.group("construct").strip()
 
             # Sanity check
             if this_construct and this_construct.lower() != construct:
@@ -472,13 +470,22 @@ class Indenter:
                 or m.group("construct_no_name")
                 or m.group("construct_function")
             )
-            name = indent_matches[-1].group("name")
+            name = m.group("name")
             # We match 'if (...) then' using then
             # but it corresponds to an 'end if'
-            if construct.lower() == "then":
+            if m.group("has_then"):
                 construct = "if"
 
-            self.program_stack.append((construct.lower(), name, context))
+            if construct is None:
+                raise ValueError(
+                    "Construct should not be None. "
+                    f"Match: {m.group(0)}\n"
+                    f"Current context: {context}"
+                )
+
+            construct = construct.lower().strip()
+
+            self.program_stack.append((construct, name, context))
 
         if self.checker(line, CONTINUATION_LINE_RULES, comment_pos, string_spans):
             curline_continuation = True
