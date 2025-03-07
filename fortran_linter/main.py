@@ -283,6 +283,9 @@ def string_locations(line: str) -> Iterator[tuple[int, int]]:
         elif mark == current_mark:
             # Closing mark
             current_mark = None
+            if opening_loc is None:
+                raise RuntimeError("Opening location is None, but reached closing mark")
+
             yield opening_loc, match.end()
             opening_loc = None
 
