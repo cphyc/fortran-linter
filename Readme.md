@@ -13,11 +13,11 @@ There are 2 ways of installing the linter. The recommended one is through pip
 
 Alternatively, you can install it using `pipx`:
 
-  pipx install fortran-linter
+	pipx install fortran-linter
 
-or run it directly from the command line interface:
+or run it directly from the command line interface
 
-  pipx run fortran-linter
+	pipx run fortran-linter
 
 The other way is to clone this repository and install it from the local copy:
 
