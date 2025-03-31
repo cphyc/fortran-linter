@@ -11,7 +11,7 @@ repos:
     - id: no-commit-to-branch
       args: [--branch, main]
 -   repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v2.7.0
+    rev: v2.8.0
     hooks:
     -   id: setup-cfg-fmt
         args: [--include-version-classifiers, --max-py-version, '3.11']
@@ -20,7 +20,7 @@ repos:
     hooks:
     - id: mypy
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.9
+    rev: v0.11.2
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
