@@ -1,6 +1,7 @@
 import logging
 import re
 from collections.abc import Callable, Iterator
+from typing import Any
 
 logging.basicConfig(filename="myapp.log", level=logging.DEBUG)
 re_strings = re.compile(r"([\"']).*?\1")
@@ -222,8 +223,34 @@ class FortranRules:
 
 INDENTER_RULES = (
     re.compile(
-        r"\b(if.*then|do|select|while|subroutine|function|module(?!\s*procedure)|interface)\b",
-        re.I,
+        r"""
+        (
+            (?P<construct_no_name>
+                # Note: we match on "then" rather than "if.*then"
+                # so that we allow if (...) & \n then
+                .*(?P<has_then>\bthen)|(
+                    ^\s*\b
+                    # Possibly match optional label (foo: do)
+                    (?P<label>\w+\s*:\s*)?
+                    (do|select|while|block)
+                )
+            )|(^\s*\b
+                (
+                    (?P<construct>
+                        type(?!\()|program|subroutine|(sub)?module(?!\s*procedure)|interface
+                    )|(
+                        # This one is tricky, we match on 'function' but not 'end'
+                        # to capture 'function foo' but not 'end function'
+                        # but also 'real(dp) elemental pure function'
+                        (?!\bend\b).*
+                        (?P<construct_function>function)
+                    )
+                )
+                (\s+(?P<name>\w+))?
+            )
+        )\b
+        """,
+        re.I | re.VERBOSE,
     ),
 )
 CONTINUATION_LINE_RULES = (re.compile(r"&(?=\s*(!.*)?$)"),)
@@ -237,16 +264,23 @@ DEDENTER_RULES = (
     re.compile(
         r"""
             \b
-            # end
-            end
-            # white space
+            (?P<end_construct_name>
+                # end
+                end
+                # may be followed by the construct name, e.g. 'end function'
+                (
+                    # either just `end`
+                    \b
+                    |
+                        # or end if / end do / end subroutine
+                        \s*
+                        (?P<construct>if|do|select|block|case|while|type|program|subroutine|function|(sub)?module|interface)
+                        # and eventually the name of the function, e.g.
+                        # 'end function foo'
+                        (\s+(?P<name>\w+))?
+                )
+            )
             \s*
-            # may be followed by the construct name, e.g. 'end function'
-            (
-                (if|do|select|case|while|subroutine|function|module|interface)
-                # and eventually the name of the function, ..., e.g. 'end function foo'
-                \s*(\s+\w+)?\s*
-            )?
             # we do not want to capture this
             (?=
                 # may be followed by a comment...
@@ -264,7 +298,7 @@ WHITESPACE_RULE = re.compile(
 )  # match any whitespace, but not end-of-line
 STRING_MARK_DETECTOR = re.compile(r"(?<!(?<!\\)\\)['\"]")
 COMMENT_MARK_DETECTOR = re.compile(r"!")
-LABEL_RULES = (re.compile(r"^\d+\b"),)
+INT_LABEL_RULES = (re.compile(r"^\d+\b"),)
 
 
 def string_locations(line: str) -> Iterator[tuple[int, int]]:
@@ -344,9 +378,15 @@ class Indenter:
     Nindent: int
     current_line_indent: int = 0
     continuation_line: bool = False
+    filename: str
 
-    def __init__(self, nindent: int):
+    # The stack of program/module/subroutine/function
+    program_stack: list[tuple[str, str, Any]]
+
+    def __init__(self, nindent: int, filename: str):
         self.Nindent = nindent
+        self.program_stack = []
+        self.filename = filename
 
     def checker(
         self,
@@ -366,7 +406,7 @@ class Indenter:
 
         return False
 
-    def indent_line(self, line: str) -> str:
+    def indent_line(self, line: str, context: Any) -> str:
         if line.startswith("#"):
             return line
 
@@ -380,24 +420,92 @@ class Indenter:
         cur_line_shift = 0
 
         label_matches: list[re.Match] = []
-        has_label = self.checker(
-            line, LABEL_RULES, comment_pos, string_spans, return_matches=label_matches
+        has_int_label = self.checker(
+            line,
+            INT_LABEL_RULES,
+            comment_pos,
+            string_spans,
+            return_matches=label_matches,
         )
         indent_matches: list[re.Match] = []
+        named_constructs_matches: list[re.Match] = []
 
         if self.checker(line, IMMEDIATE_DEDENTER_RULES, comment_pos, string_spans):
             cur_line_shift = self.Nindent
-        elif self.checker(line, DEDENTER_RULES, comment_pos, string_spans):
-            cur_line_shift = self.Nindent
-            dedent = True
         elif self.checker(
             line,
+            DEDENTER_RULES,
+            comment_pos,
+            string_spans,
+            return_matches=named_constructs_matches,
+        ):
+            cur_line_shift = self.Nindent
+            dedent = True
+
+            # Dedent a previously-opened construct
+            construct, name, opening_context = self.program_stack.pop()
+
+            m = named_constructs_matches[-1]
+            this_construct = m.group("construct").strip()
+
+            # Sanity check
+            if this_construct and this_construct.lower() != construct:
+                raise ValueError(
+                    "Named construct does not match the construct pattern, "
+                    f"expected '{construct}' "
+                    f"but got '{this_construct.lower()}'.\n"
+                    f"Current context: {context}\n"
+                    f"Other context:   {opening_context}"
+                )
+
+            span = named_constructs_matches[-1].span("end_construct_name")
+
+            # Replace the construct with proper format
+            proper_format_lst = ["end"]
+            if construct:
+                proper_format_lst.append(construct)
+            if name:
+                proper_format_lst.append(name)
+
+            proper_format = " ".join(proper_format_lst)
+            line = line[: span[0]] + proper_format + line[span[1] :]
+
+        elif self.checker(
+            line[:comment_pos],
             INDENTER_RULES,
             comment_pos,
             string_spans,
             return_matches=indent_matches,
         ):
             indent = True
+            m = indent_matches[-1]
+            construct = (
+                m.group("construct")
+                or m.group("construct_no_name")
+                or m.group("construct_function")
+            )
+            name = m.group("name")
+            # We match 'if (...) then' using then
+            # but it corresponds to an 'end if'
+            if m.group("has_then"):
+                construct = "if"
+
+            # If we have a label, remove it from the construct name
+            if m.group("label"):
+                construct = construct.replace(m.group("label"), "")
+                name = m.group("label").replace(":", "").strip()
+
+            if construct is None:
+                raise ValueError(
+                    "Construct should not be None. "
+                    f"Match: {m.group(0)}\n"
+                    f"Current context: {context}"
+                )
+
+            construct = construct.lower().strip()
+
+            self.program_stack.append((construct, name, context))
+
         if self.checker(line, CONTINUATION_LINE_RULES, comment_pos, string_spans):
             curline_continuation = True
 
@@ -421,7 +529,7 @@ class Indenter:
                 next_line_indent += self.Nindent
 
         # Treat the case where the line starts with a label
-        if has_label:
+        if has_int_label:
             match = label_matches[0]
             label_str = match.group(0)
             prefix = label_str + " "
@@ -440,7 +548,13 @@ class Indenter:
         return new_line
 
     def __call__(self, lines: list[str]) -> list[str]:
-        return [self.indent_line(line) for line in lines]
+        return [
+            self.indent_line(
+                line,
+                {"file": self.filename, "line_number": line_number + 1, "line": line},
+            )
+            for line_number, line in enumerate(lines)
+        ]
 
 
 class LineChecker:
@@ -469,7 +583,7 @@ class LineChecker:
         self.print_progress = print_progress
 
         self.rules = FortranRules(linelen=linelen)
-        self.indenter = Indenter(indent_size)
+        self.indenter = Indenter(indent_size, fname)
 
         self.errcount = 0
         self.modifcount = 0
